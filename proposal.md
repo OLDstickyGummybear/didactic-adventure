@@ -2,7 +2,7 @@
 
 ## Project Description
 
-This project aims to recreate the game Minecraft using p5.js. 
+This project aims to recreate the game Minecraft using p5.js. This will be expanding upon my 2D array project, which only contained a basic 
 
 ## Needs to Have List
 
@@ -12,12 +12,12 @@ This project aims to recreate the game Minecraft using p5.js.
 - Accurate camera movements
 - World saving
 - Plant generation
-- A mob
-- Acceptable performance
+- Performance optimization 
 
 ## Nice to Have List
 
 - Varied biomes
 - Cave systems
-- More than one mob
-- Performance optimization
+- Mobs
+
+
