@@ -7,7 +7,7 @@ This project aims to recreate the game Minecraft using p5.js. This will be expan
 ## Needs to Have List
 
 - Procedural generation
-- Inventory system
+
 - Building and breaking blocks
 - Accurate camera movements
 - World saving
@@ -16,8 +16,10 @@ This project aims to recreate the game Minecraft using p5.js. This will be expan
 
 ## Nice to Have List
 
+- Inventory system
 - Varied biomes
 - Cave systems
 - Mobs
+- Camera bobbing
 
 
