@@ -7,7 +7,6 @@ This project aims to recreate the game Minecraft using p5.js. This will be expan
 ## Needs to Have List
 
 - Procedural generation
-
 - Building and breaking blocks
 - Accurate camera movements
 - World saving
