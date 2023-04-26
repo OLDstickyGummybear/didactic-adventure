@@ -2,13 +2,19 @@
 
 let worldArray = [];
 
+let seed;
+
 // Declares default world generation dimensions
 const GENXWIDTH = 1000000;
 const GENZWIDTH = 1000000;
 const GENYHEIGHT = 256;
 
+
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  seed = random(1000000000000000000000)
 }
 
 function draw() {
@@ -31,10 +37,10 @@ function createEmpty3DArray(width, height, length) {
 }
 
 // Procedurally generates terrain
-function generateNoise(array) {
+function generateNoise(array, seed) {
   // Picks random start point for Perlin noise
-  let xOffset = random(1000000);
-  let zOffset = random(1000000);
+  let xOffset = random(seed);
+  let zOffset = random(seed);
 
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
@@ -56,4 +62,8 @@ function generateNoise(array) {
       }
     }
   }
+}
+
+function renderWorld(distance, array, camX, camY, camZ) {
+  
 }

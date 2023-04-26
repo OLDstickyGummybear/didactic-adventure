@@ -20,5 +20,5 @@ This project aims to recreate the game Minecraft using p5.js. This will be expan
 - Cave systems
 - Mobs
 - Camera bobbing
-
+- Water
 
