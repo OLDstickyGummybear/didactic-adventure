@@ -1,4 +1,4 @@
-
+// 1 coordinate = 1 block
 
 let worldArray = [];
 
@@ -42,7 +42,7 @@ function generateNoise(array, seed) {
   let xOffset = random(seed);
   let zOffset = random(seed);
 
-  for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
+  for (let x = Math.max(round(camera.eyeX / CUBEWIDTH) - renderRadius, 0); x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
       let yGen = round(map(noise((x + xOffset) / ZOOM, (z + zOffset) / ZOOM), 0, 1, 0, genYHeight)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
       array[yGen][x][z] = 1; // Generates top layer; 1 is grass
@@ -64,6 +64,44 @@ function generateNoise(array, seed) {
   }
 }
 
-function renderWorld(distance, array, camX, camY, camZ) {
+function renderWorld(distance, array, camX, camZ) {
+  let airChecklist = [[array[y+1][x][z], 2], // down
+                      [array[y-1][x][z], 3], // up
+                      [array[y][x+1][z], 5], // left
+                      [array[y][x-1][z], 7], // right
+                      [array[y][x][z+1], 11], // back
+                      [array[y][x][z-1], 13]]; // forward
   
+  for (let y = 0; y < array.length; y ++) {
+    for (let x = Math.max(round(camX) - distance, 0); x <= Math.min(round(camX) + distance, array[0].length); x ++) {
+      for (let z = Math.max(round(camZ) - distance, 0); x <= Math.min(round(camZ) + distance, array[0][0].length); z ++) {
+        let airPrimeSum = 0;
+        
+        push();
+        
+        translate(x, y, z);
+
+        if ([array[y+1][x][z], 2] === 0) { // down
+
+        }
+        if ([array[y-1][x][z], 3] === 0) { // up
+
+        }
+        if ([array[y][x+1][z], 5] === 0) { // left
+
+        }
+        if ([array[y][x-1][z], 7] === 0) { // right
+
+        }
+        if ([array[y][x][z+1], 11] === 0) { // back
+
+        }
+        if ([array[y][x][z-1], 13] === 0) { // forward
+
+        }
+
+
+      }
+    }
+  }
 }
