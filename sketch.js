@@ -1,4 +1,4 @@
-// 1 coordinate = 1 block
+// north == -z; south == +z; west == -x; east = +x; up == -y; down == +y
 
 let worldArray = [];
 
@@ -9,10 +9,11 @@ const GENXWIDTH = 1000000;
 const GENZWIDTH = 1000000;
 const GENYHEIGHT = 256;
 
+const BLOCKWIDTH = 100;
 
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight, WEBGL);
 
   seed = random(1000000000000000000000)
 }
@@ -42,7 +43,7 @@ function generateNoise(array, seed) {
   let xOffset = random(seed);
   let zOffset = random(seed);
 
-  for (let x = Math.max(round(camera.eyeX / CUBEWIDTH) - renderRadius, 0); x < array[0].length; x++) { // For each X-coordinate
+  for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
       let yGen = round(map(noise((x + xOffset) / ZOOM, (z + zOffset) / ZOOM), 0, 1, 0, genYHeight)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
       array[yGen][x][z] = 1; // Generates top layer; 1 is grass
@@ -65,43 +66,45 @@ function generateNoise(array, seed) {
 }
 
 function renderWorld(distance, array, camX, camZ) {
-  let airChecklist = [[array[y+1][x][z], 2], // down
-                      [array[y-1][x][z], 3], // up
-                      [array[y][x+1][z], 5], // left
-                      [array[y][x-1][z], 7], // right
-                      [array[y][x][z+1], 11], // back
-                      [array[y][x][z-1], 13]]; // forward
+  let camXB = inBlocks(camX);
+  let camZB = inBlocks(camZ);
   
   for (let y = 0; y < array.length; y ++) {
-    for (let x = Math.max(round(camX) - distance, 0); x <= Math.min(round(camX) + distance, array[0].length); x ++) {
-      for (let z = Math.max(round(camZ) - distance, 0); x <= Math.min(round(camZ) + distance, array[0][0].length); z ++) {
-        let airPrimeSum = 0;
+    for (let x = Math.max(round(camXB) - distance, 0); x <= Math.min(round(camXB) + distance, array[0].length); x ++) {
+      for (let z = Math.max(round(camZB) - distance, 0); z <= Math.min(round(camZB) + distance, array[0][0].length); z ++) {
+        
+        // [condition, rotateX, rotateY, rotateZ, translate X, translate Y, translate Z, texture side (0 = top, 1 = side, 2 = bottom)]
+        let airChecklist = [[array[y+1][x][z], 90, 0, 0, BLOCKWIDTH/2, 0, 0], // down
+                            [array[y-1][x][z], 90, 0, 0, -BLOCKWIDTH/2, 0, 0], // up
+                            [array[y][x+1][z], ], // west
+                            [array[y][x-1][z], ], // east
+                            [array[y][x][z+1], ], // south
+                            [array[y][x][z-1], ]]; // north
         
         push();
         
         translate(x, y, z);
 
-        if ([array[y+1][x][z], 2] === 0) { // down
+        for (let side in airChecklist) {
+          if (side[0] !== 0) {
+            push();
+            
+            rotateX(side[1]);
+            rotateY(side[2]);
+            rotateZ(side[3]);
+            translate(side[4], side[5], side[6]);
+            texture(); // the array[y][x][z] from textures array
 
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+
+            pop();
+          }
         }
-        if ([array[y-1][x][z], 3] === 0) { // up
-
-        }
-        if ([array[y][x+1][z], 5] === 0) { // left
-
-        }
-        if ([array[y][x-1][z], 7] === 0) { // right
-
-        }
-        if ([array[y][x][z+1], 11] === 0) { // back
-
-        }
-        if ([array[y][x][z-1], 13] === 0) { // forward
-
-        }
-
-
       }
     }
   }
+}
+
+function inBlocks(value) {
+  return value * BLOCKWIDTH;
 }
