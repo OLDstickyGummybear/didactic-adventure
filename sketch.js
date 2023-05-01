@@ -1,21 +1,45 @@
 // north == -z; south == +z; west == -x; east = +x; up == -y; down == +y
 
-let worldArray = [];
+let worldArray;
 
 let seed;
-
-// Declares default world generation dimensions
-const GENXWIDTH = 1000000;
-const GENZWIDTH = 1000000;
-const GENYHEIGHT = 256;
 
 const BLOCKWIDTH = 100;
 
 
+// Declares default world generation dimensions
+const GENXWIDTH = 1000;
+const GENZWIDTH = 1000;
+const GENYHEIGHT = 256;
+
+const ZOOM = 20;
+
+let spawnX;
+let spawnY;
+let spawnZ;
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+  noStroke();
+  angleMode(DEGREES);
 
   seed = random(1000000000000000000000)
+
+  worldArray = createEmpty3DArray(GENXWIDTH, GENYHEIGHT, GENZWIDTH);
+  generateNoise(worldArray, seed, ZOOM);
+
+  // Calculates spawnpoint to be in the centre of the array
+  spawnX = round(GENXWIDTH/2);
+  spawnZ = round(GENZWIDTH/2);
+
+  // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
+  spawnY = findSpawnY(spawnX, spawnZ, worldArray);
+
+  // Moves camera to spawnpoint
+  // camera.eyeX = spawnX * BLOCKWIDTH;
+  // camera.eyeY = spawnY * BLOCKWIDTH;
+  // camera.eyeZ = spawnZ * BLOCKWIDTH;
+  // camera.move(0, -1, 0);
 }
 
 function draw() {
@@ -34,18 +58,29 @@ function createEmpty3DArray(width, height, length) {
       } 
     }
   }
+  console.log('World Container Created');
   return volume; // Return output array 
 }
 
+// Finds the Y-coordinate two blocks higher than the highest block at a given X- and Z-coordinate
+function findSpawnY(x, z, array) {
+  for (let y = 0; y < array.length; y++) {
+    if (array[y][x][z] !== 0) { // If a block is at (x, y, z):
+      return y - 3;
+    }
+  }
+}
+
 // Procedurally generates terrain
-function generateNoise(array, seed) {
+function generateNoise(array, seed, zoom) {
+  console.log('Generating Terrain');
   // Picks random start point for Perlin noise
   let xOffset = random(seed);
   let zOffset = random(seed);
 
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
-      let yGen = round(map(noise((x + xOffset) / ZOOM, (z + zOffset) / ZOOM), 0, 1, 0, genYHeight)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
+      let yGen = round(map(noise((x + xOffset) / zoom, (z + zOffset) / zoom), 0, 1, 0, GENYHEIGHT)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
       array[yGen][x][z] = 1; // Generates top layer; 1 is grass
 
       // For each layer below the top layer
@@ -63,6 +98,8 @@ function generateNoise(array, seed) {
       }
     }
   }
+
+  console.log('Terrain Generated')
 }
 
 function renderWorld(distance, array, camX, camZ) {
@@ -73,13 +110,13 @@ function renderWorld(distance, array, camX, camZ) {
     for (let x = Math.max(round(camXB) - distance, 0); x <= Math.min(round(camXB) + distance, array[0].length); x ++) {
       for (let z = Math.max(round(camZB) - distance, 0); z <= Math.min(round(camZB) + distance, array[0][0].length); z ++) {
         
-        // [condition, rotateX, rotateY, rotateZ, translate X, translate Y, translate Z, texture side (0 = top, 1 = side, 2 = bottom)]
-        let airChecklist = [[array[y+1][x][z], 90, 0, 0, BLOCKWIDTH/2, 0, 0], // down
-                            [array[y-1][x][z], 90, 0, 0, -BLOCKWIDTH/2, 0, 0], // up
-                            [array[y][x+1][z], ], // west
-                            [array[y][x-1][z], ], // east
-                            [array[y][x][z+1], ], // south
-                            [array[y][x][z-1], ]]; // north
+        //                         [condition, rotateX, rotateY, rotateZ,   translate X,   translate Y,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]
+        let airChecklist = [[array[y+1][x][z],     -90,       0,       0,             0,  BLOCKWIDTH/2,             0, 0], // down
+                            [array[y-1][x][z],      90,       0,       0,             0, -BLOCKWIDTH/2,             0, 2], // up
+                            [array[y][x+1][z],       0,     -90,       0, -BLOCKWIDTH/2,             0,             0, 1], // west
+                            [array[y][x-1][z],       0,      90,       0,  BLOCKWIDTH/2,             0,             0, 1], // east
+                            [array[y][x][z+1],       0,       0,       0,             0,             0,  BLOCKWIDTH/2, 1], // south
+                            [array[y][x][z-1],       0,     180,       0,             0,             0, -BLOCKWIDTH/2, 1]]; // north
         
         push();
         
@@ -93,7 +130,7 @@ function renderWorld(distance, array, camX, camZ) {
             rotateY(side[2]);
             rotateZ(side[3]);
             translate(side[4], side[5], side[6]);
-            texture(); // the array[y][x][z] from textures array
+            texture(textureArray[array[y][x][z]][side[7]]); // the array[y][x][z] from textures array
 
             plane(BLOCKWIDTH, BLOCKWIDTH);
 
