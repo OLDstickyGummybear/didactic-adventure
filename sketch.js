@@ -6,11 +6,12 @@ let seed;
 
 const BLOCKWIDTH = 100;
 
+let textureArray;
 
 // Declares default world generation dimensions
 const GENXWIDTH = 1000;
 const GENZWIDTH = 1000;
-const GENYHEIGHT = 256;
+const GENYHEIGHT = 20;
 
 const ZOOM = 20;
 
@@ -18,10 +19,14 @@ let spawnX;
 let spawnY;
 let spawnZ;
 
+let renderDistance = 2;
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
   angleMode(DEGREES);
+
+  camera = createCamera();
 
   seed = random(1000000000000000000000)
 
@@ -36,14 +41,16 @@ function setup() {
   spawnY = findSpawnY(spawnX, spawnZ, worldArray);
 
   // Moves camera to spawnpoint
-  // camera.eyeX = spawnX * BLOCKWIDTH;
-  // camera.eyeY = spawnY * BLOCKWIDTH;
-  // camera.eyeZ = spawnZ * BLOCKWIDTH;
-  // camera.move(0, -1, 0);
+//   camera.eyeX = spawnX * BLOCKWIDTH;
+//   camera.eyeY = spawnY * BLOCKWIDTH;
+//   camera.eyeZ = spawnZ * BLOCKWIDTH;
+// //   camera.move(0, -1, 0);
 }
 
 function draw() {
-  background(220);
+  // background(220);
+  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
+  moveCam(camera);
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -106,33 +113,45 @@ function renderWorld(distance, array, camX, camZ) {
   let camXB = inBlocks(camX);
   let camZB = inBlocks(camZ);
   
-  for (let y = 0; y < array.length; y ++) {
-    for (let x = Math.max(round(camXB) - distance, 0); x <= Math.min(round(camXB) + distance, array[0].length); x ++) {
-      for (let z = Math.max(round(camZB) - distance, 0); z <= Math.min(round(camZB) + distance, array[0][0].length); z ++) {
+  // console.log('Rendering...')
+
+  for (let y = 1; y < array.length - 1; y ++) {
+    // console.log('Rendering y')
+    for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
+      // console.log('Rendering x')
+      for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
         
-        //                         [condition, rotateX, rotateY, rotateZ,   translate X,   translate Y,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]
+        // console.log('Rendering z')
+
+        //                  [       condition, rotateX, rotateY, rotateZ,   translate X,   translate Y,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
         let airChecklist = [[array[y+1][x][z],     -90,       0,       0,             0,  BLOCKWIDTH/2,             0, 0], // down
                             [array[y-1][x][z],      90,       0,       0,             0, -BLOCKWIDTH/2,             0, 2], // up
                             [array[y][x+1][z],       0,     -90,       0, -BLOCKWIDTH/2,             0,             0, 1], // west
                             [array[y][x-1][z],       0,      90,       0,  BLOCKWIDTH/2,             0,             0, 1], // east
                             [array[y][x][z+1],       0,       0,       0,             0,             0,  BLOCKWIDTH/2, 1], // south
                             [array[y][x][z-1],       0,     180,       0,             0,             0, -BLOCKWIDTH/2, 1]]; // north
-        
+                            
         push();
         
         translate(x, y, z);
 
         for (let side in airChecklist) {
-          if (side[0] !== 0) {
+          if (+side[0] !== 0) {
             push();
             
             rotateX(side[1]);
             rotateY(side[2]);
             rotateZ(side[3]);
             translate(side[4], side[5], side[6]);
-            texture(textureArray[array[y][x][z]][side[7]]); // the array[y][x][z] from textures array
+            // texture(textureArray[array[y][x][z]][side[7]]);
+
+            fill('white');
 
             plane(BLOCKWIDTH, BLOCKWIDTH);
+            // console.log('plane drawn')
+
+            fill('red');
+            box(5, 5, 5);
 
             pop();
           }
@@ -143,5 +162,44 @@ function renderWorld(distance, array, camX, camZ) {
 }
 
 function inBlocks(value) {
-  return value * BLOCKWIDTH;
+  return value / BLOCKWIDTH;
+}
+
+function moveCam(cam) {
+  // Camera translation
+  if (keyIsDown(87)) { // W
+    cam.move(0, 0, -10);
+  }
+  if (keyIsDown(83)) { // S
+    cam.move(0, 0, 10);
+  }
+  if (keyIsDown(65)) { // A
+    cam.move(-10, 0, 0);
+  }
+  if (keyIsDown(68)) { // D
+    cam.move(10, 0, 0);
+  }
+  if (keyIsDown(32)) { // SPACE
+    cam.move(0, -10, 0);
+  }
+  if (keyIsDown(16)) { // SHIFT
+    cam.move(0, 10, 0);
+  }
+
+  // Camera rotation
+  if (keyIsDown(LEFT_ARROW)) { // <-
+    cam.pan(1);
+  }
+  if (keyIsDown(RIGHT_ARROW)) { // ->
+    cam.pan(-1);
+  }
+  if (keyIsDown(UP_ARROW)) { // ^
+    cam.tilt(-1);
+  }
+  if (keyIsDown(DOWN_ARROW)) { // v
+    cam.tilt(1);
+  }
+
+  // Logs cam coordinates in blocks
+  console.log(`x: ${(inBlocks(camera.eyeX)).toFixed(2)}, y: ${(inBlocks(camera.eyeY)).toFixed(2)}, z: ${(inBlocks(camera.eyeZ)).toFixed(2)}`);
 }
