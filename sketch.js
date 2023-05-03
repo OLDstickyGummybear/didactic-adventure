@@ -23,7 +23,7 @@ let renderDistance = 2;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  noStroke();
+  // noStroke();
   angleMode(DEGREES);
 
   camera = createCamera();
@@ -33,24 +33,25 @@ function setup() {
   worldArray = createEmpty3DArray(GENXWIDTH, GENYHEIGHT, GENZWIDTH);
   generateNoise(worldArray, seed, ZOOM);
 
-  // Calculates spawnpoint to be in the centre of the array
+  // // Calculates spawnpoint to be in the centre of the array
   spawnX = round(GENXWIDTH/2);
   spawnZ = round(GENZWIDTH/2);
 
-  // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
+  // // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
   spawnY = findSpawnY(spawnX, spawnZ, worldArray);
 
-  // Moves camera to spawnpoint
-//   camera.eyeX = spawnX * BLOCKWIDTH;
-//   camera.eyeY = spawnY * BLOCKWIDTH;
-//   camera.eyeZ = spawnZ * BLOCKWIDTH;
-// //   camera.move(0, -1, 0);
+  // // Moves camera to spawnpoint
+  // camera.eyeX = inBlocks(spawnX);
+  // camera.eyeY = inBlocks(spawnY);
+  // camera.eyeZ = inBlocks(spawnZ);
 }
 
 function draw() {
-  // background(220);
+  background(0);
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
-  moveCam(camera);
+  moveCam(camera); 
+  // fill('white');
+  // plane(1000, 1000);
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -122,6 +123,7 @@ function renderWorld(distance, array, camX, camZ) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
         
         // console.log('Rendering z')
+        // plane(10, 10);
 
         //                  [       condition, rotateX, rotateY, rotateZ,   translate X,   translate Y,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
         let airChecklist = [[array[y+1][x][z],     -90,       0,       0,             0,  BLOCKWIDTH/2,             0, 0], // down
@@ -131,31 +133,35 @@ function renderWorld(distance, array, camX, camZ) {
                             [array[y][x][z+1],       0,       0,       0,             0,             0,  BLOCKWIDTH/2, 1], // south
                             [array[y][x][z-1],       0,     180,       0,             0,             0, -BLOCKWIDTH/2, 1]]; // north
                             
-        push();
-        
-        translate(x, y, z);
 
-        for (let side in airChecklist) {
-          if (+side[0] !== 0) {
+        
+        
+        push();
+        translate(x * BLOCKWIDTH, y * BLOCKWIDTH, z * BLOCKWIDTH);
+
+        for (let i = 0; i < airChecklist.length; i ++) {
+
+          if (airChecklist[i][0] !== 0) {
             push();
             
-            rotateX(side[1]);
-            rotateY(side[2]);
-            rotateZ(side[3]);
-            translate(side[4], side[5], side[6]);
+            
+
+            rotateX(airChecklist[i][1]);
+            rotateY(airChecklist[i][2]);
+            rotateZ(airChecklist[i][3]);
+
+            translate(airChecklist[i][4], airChecklist[i][5], airChecklist[i][6]);
             // texture(textureArray[array[y][x][z]][side[7]]);
 
             fill('white');
-
             plane(BLOCKWIDTH, BLOCKWIDTH);
-            // console.log('plane drawn')
-
-            fill('red');
-            box(5, 5, 5);
+            // console.log(`plane drawn at ${airChecklist[i][4] + x}, ${airChecklist[i][5] + y}, ${airChecklist[i][6] + z} `)
 
             pop();
           }
         }
+
+        pop();
       }
     }
   }
