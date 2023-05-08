@@ -26,7 +26,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
   angleMode(DEGREES);
-  requestPointerLock();
+
 
   camera = createCamera();
 
@@ -50,7 +50,7 @@ function setup() {
 
 function draw() {
   background(0);
-  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
+  renderWorldLegacy(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
   moveCam(camera); 
   // fill('white');
   // plane(1000, 1000);
@@ -121,8 +121,84 @@ function renderWorld(distance, array, camX, camZ) {
   
   // console.log('Rendering...')
 
+  for (let y = 1; y < GENYHEIGHT - 1; y ++) {
+
+    // console.log('Rendering y')
+    for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, GENXWIDTH - 1); x ++) {
+      // console.log('Rendering x')
+      for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, GENZWIDTH - 1); z ++) {
 
 
+        translate(inCoords(x), inCoords(y), inCoords(z));
+
+        if (array[y][x][z] !== 0) {
+          if (array[y+1][x][z] === 0) { // down
+            push();
+            rotateX(-90);
+            translate(0, 0, BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][0]);
+            fill('red');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+          if (array[y-1][x][z] === 0) { // up
+            push();
+            rotateX(90);
+            translate(0, 0, BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][2]);
+            fill('orange');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+          if (array[y][x+1][z] === 0) { // west
+            push();
+            rotateY(-90);
+            translate(0, 0, -BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][1]);
+            fill('yellow');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+          if (array[y][x-1][z] === 0) { // east
+            push();
+            rotateY(90);
+            translate(0, 0, -BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][1]);
+            fill('green');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+          if (array[y][x][z+1] === 0) { // south
+            push();
+            translate(0, 0, BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][1]);
+            fill('blue');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+          if (array[y][x][z-1] === 0) { // north
+            push();
+            rotateY(180);
+            translate(0, 0, BLOCKWIDTH/2);
+            // texture(textureArray[array[y][x][z]][1]);
+            fill('purple');
+            plane(BLOCKWIDTH, BLOCKWIDTH);
+            pop();
+          }
+
+        }
+
+        translate(inCoords(-x), inCoords(-y), inCoords(-z));
+      }
+    }
+  }
+}
+
+function renderWorldLegacy(distance, array, camX, camZ) {
+  let camXB = inBlocks(camX);
+  let camZB = inBlocks(camZ);
+  
+  // console.log('Rendering...')
   for (let y = 1; y < array.length - 1; y ++) {
     // console.log('Rendering y')
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
@@ -143,12 +219,12 @@ function renderWorld(distance, array, camX, camZ) {
 
         
         
-        push();
+        // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
 
         for (let i = 0; i < airChecklist.length; i ++) {
 
-          if (airChecklist[i][0] === 0 && array[y][x][z] !== 0) {
+          if (array[y][x][z] !== 0 && airChecklist[i][0] === 0) {       
             push();
 
             rotateX(airChecklist[i][1]);
@@ -165,8 +241,7 @@ function renderWorld(distance, array, camX, camZ) {
             pop();
           }
         }
-
-        pop();
+        translate(inCoords(-x), inCoords(-y), inCoords(-z));
       }
     }
   }
@@ -231,4 +306,5 @@ function keyPressed() {
   if (keyIsDown(81) && renderDistance >= 4) { // Q; minimum render distance is 4 blocks
     renderDistance --;
   }
+  requestPointerLock();
 } 
