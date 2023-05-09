@@ -22,6 +22,14 @@ let spawnZ;
 
 let renderDistance = 10;
 
+function preload() {
+  // Preloads block textures
+  grass = loadImage('texturesgrass.png');
+  dirt = loadImage('dirt.png');
+  stone = loadImage('stone.png');
+}
+
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
@@ -54,6 +62,8 @@ function draw() {
   moveCam(camera); 
   // fill('white');
   // plane(1000, 1000);
+  console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
+
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -115,84 +125,84 @@ function generateNoise(array, seed, zoom) {
   console.log('Terrain Generated')
 }
 
-function renderWorld(distance, array, camX, camZ) {
-  let camXB = inBlocks(camX);
-  let camZB = inBlocks(camZ);
+// function renderWorld(distance, array, camX, camZ) {
+//   let camXB = inBlocks(camX);
+//   let camZB = inBlocks(camZ);
   
-  // console.log('Rendering...')
+//   // console.log('Rendering...')
 
-  for (let y = 1; y < GENYHEIGHT - 1; y ++) {
+//   for (let y = 1; y < GENYHEIGHT - 1; y ++) {
 
-    // console.log('Rendering y')
-    for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, GENXWIDTH - 1); x ++) {
-      // console.log('Rendering x')
-      for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, GENZWIDTH - 1); z ++) {
+//     // console.log('Rendering y')
+//     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, GENXWIDTH - 1); x ++) {
+//       // console.log('Rendering x')
+//       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, GENZWIDTH - 1); z ++) {
 
 
-        translate(inCoords(x), inCoords(y), inCoords(z));
+//         translate(inCoords(x), inCoords(y), inCoords(z));
 
-        if (array[y][x][z] !== 0) {
-          if (array[y+1][x][z] === 0) { // down
-            push();
-            rotateX(-90);
-            translate(0, 0, BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][0]);
-            fill('red');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
-          if (array[y-1][x][z] === 0) { // up
-            push();
-            rotateX(90);
-            translate(0, 0, BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][2]);
-            fill('orange');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
-          if (array[y][x+1][z] === 0) { // west
-            push();
-            rotateY(-90);
-            translate(0, 0, -BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][1]);
-            fill('yellow');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
-          if (array[y][x-1][z] === 0) { // east
-            push();
-            rotateY(90);
-            translate(0, 0, -BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][1]);
-            fill('green');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
-          if (array[y][x][z+1] === 0) { // south
-            push();
-            translate(0, 0, BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][1]);
-            fill('blue');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
-          if (array[y][x][z-1] === 0) { // north
-            push();
-            rotateY(180);
-            translate(0, 0, BLOCKWIDTH/2);
-            // texture(textureArray[array[y][x][z]][1]);
-            fill('purple');
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            pop();
-          }
+//         if (array[y][x][z] !== 0) {
+//           if (array[y+1][x][z] === 0) { // down
+//             push();
+//             rotateX(-90);
+//             translate(0, 0, BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][0]);
+//             fill('red');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
+//           if (array[y-1][x][z] === 0) { // up
+//             push();
+//             rotateX(90);
+//             translate(0, 0, BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][2]);
+//             fill('orange');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
+//           if (array[y][x+1][z] === 0) { // west
+//             push();
+//             rotateY(-90);
+//             translate(0, 0, -BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][1]);
+//             fill('yellow');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
+//           if (array[y][x-1][z] === 0) { // east
+//             push();
+//             rotateY(90);
+//             translate(0, 0, -BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][1]);
+//             fill('green');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
+//           if (array[y][x][z+1] === 0) { // south
+//             push();
+//             translate(0, 0, BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][1]);
+//             fill('blue');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
+//           if (array[y][x][z-1] === 0) { // north
+//             push();
+//             rotateY(180);
+//             translate(0, 0, BLOCKWIDTH/2);
+//             // texture(textureArray[array[y][x][z]][1]);
+//             fill('purple');
+//             plane(BLOCKWIDTH, BLOCKWIDTH);
+//             pop();
+//           }
 
-        }
+//         }
 
-        translate(inCoords(-x), inCoords(-y), inCoords(-z));
-      }
-    }
-  }
-}
+//         translate(inCoords(-x), inCoords(-y), inCoords(-z));
+//       }
+//     }
+//   }
+// }
 
 function renderWorldLegacy(distance, array, camX, camZ) {
   let camXB = inBlocks(camX);
@@ -222,21 +232,21 @@ function renderWorldLegacy(distance, array, camX, camZ) {
         // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
 
-        for (let i = 0; i < airChecklist.length; i ++) {
+        for (let checkedSide of airChecklist) {
 
-          if (array[y][x][z] !== 0 && airChecklist[i][0] === 0) {       
+          if (array[y][x][z] !== 0 && checkedSide[0] === 0) {       
             push();
 
-            rotateX(airChecklist[i][1]);
-            rotateY(airChecklist[i][2]);
+            rotateX(checkedSide[1]);
+            rotateY(checkedSide[2]);
 
-            translate(0, 0, airChecklist[i][3]);
+            translate(0, 0, checkedSide[3]);
             // texture(textureArray[array[y][x][z]][side[7]]);
 
-            fill(airChecklist[i][5]);
+            fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
             // box(BLOCKWIDTH, BLOCKWIDTH);
-            // console.log(`plane drawn at ${airChecklist[i][4] + x}, ${airChecklist[i][5] + y}, ${airChecklist[i][6] + z} `)
+            // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
 
             pop();
           }
