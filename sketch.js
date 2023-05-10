@@ -16,18 +16,16 @@ const GENYHEIGHT = 20;
 
 const ZOOM = 20;
 
-let spawnX;
-let spawnY;
-let spawnZ;
+let spawnX, spawnY, spawnZ;
 
 let renderDistance = 10;
 
-function preload() {
-  // Preloads block textures
-  grass = loadImage('texturesgrass.png');
-  dirt = loadImage('dirt.png');
-  stone = loadImage('stone.png');
-}
+// function preload() {
+//   // Preloads block textures
+//   grass = loadImage('texturesgrass.png');
+//   dirt = loadImage('dirt.png');
+//   stone = loadImage('stone.png');
+// }
 
 
 function setup() {
@@ -63,7 +61,7 @@ function draw() {
   // fill('white');
   // plane(1000, 1000);
   console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
-
+  console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -98,8 +96,8 @@ function generateNoise(array, seed, zoom) {
   // let xOffset = random(seed);
   // let zOffset = random(seed);
 
-  let xOffset = 100;
-  let zOffset = 100;
+  let xOffset = 0;
+  let zOffset = 0;
 
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
@@ -316,5 +314,9 @@ function keyPressed() {
   if (keyIsDown(81) && renderDistance >= 4) { // Q; minimum render distance is 4 blocks
     renderDistance --;
   }
-  requestPointerLock();
+  
 } 
+
+function mousePressed() {
+  requestPointerLock();
+}
