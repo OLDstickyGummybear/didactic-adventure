@@ -7,7 +7,7 @@ let airChecklist;
 
 const BLOCKWIDTH = 100;
 
-let textureArray;
+let textureMap;
 
 // Declares default world generation dimensions
 const GENXWIDTH = 1000;
@@ -20,12 +20,21 @@ let spawnX, spawnY, spawnZ;
 
 let renderDistance = 10;
 
-// function preload() {
-//   // Preloads block textures
-//   grass = loadImage('texturesgrass.png');
-//   dirt = loadImage('dirt.png');
-//   stone = loadImage('stone.png');
-// }
+let blockDict = ['grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
+
+
+function preload() {
+  // Preloads block textures
+  
+}
+  
+function importBlock(blockName, map) {
+  let newArray = [];
+  for (let side = 0; side <= 2; side++) {
+    newArray.push(loadImage(`textures/${blockName}/${side}.jpg`));
+  }
+  map.set(blockName, newArray);
+}
 
 
 function setup() {
@@ -33,6 +42,11 @@ function setup() {
   noStroke();
   angleMode(DEGREES);
 
+  textureMap = new Map();
+
+  for (let block in blockDict) {
+    importBlock(block, textureMap)
+  }
 
   camera = createCamera();
 
@@ -144,7 +158,7 @@ function generateNoise(array, seed, zoom) {
 //             push();
 //             rotateX(-90);
 //             translate(0, 0, BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][0]);
+//             // texture(textureMap[array[y][x][z]][0]);
 //             fill('red');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -153,7 +167,7 @@ function generateNoise(array, seed, zoom) {
 //             push();
 //             rotateX(90);
 //             translate(0, 0, BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][2]);
+//             // texture(textureMap[array[y][x][z]][2]);
 //             fill('orange');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -162,7 +176,7 @@ function generateNoise(array, seed, zoom) {
 //             push();
 //             rotateY(-90);
 //             translate(0, 0, -BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][1]);
+//             // texture(textureMap[array[y][x][z]][1]);
 //             fill('yellow');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -171,7 +185,7 @@ function generateNoise(array, seed, zoom) {
 //             push();
 //             rotateY(90);
 //             translate(0, 0, -BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][1]);
+//             // texture(textureMap[array[y][x][z]][1]);
 //             fill('green');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -179,7 +193,7 @@ function generateNoise(array, seed, zoom) {
 //           if (array[y][x][z+1] === 0) { // south
 //             push();
 //             translate(0, 0, BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][1]);
+//             // texture(textureMap[array[y][x][z]][1]);
 //             fill('blue');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -188,7 +202,7 @@ function generateNoise(array, seed, zoom) {
 //             push();
 //             rotateY(180);
 //             translate(0, 0, BLOCKWIDTH/2);
-//             // texture(textureArray[array[y][x][z]][1]);
+//             // texture(textureMap[array[y][x][z]][1]);
 //             fill('purple');
 //             plane(BLOCKWIDTH, BLOCKWIDTH);
 //             pop();
@@ -223,9 +237,6 @@ function renderWorldLegacy(distance, array, camX, camZ) {
                         [array[y][x-1][z],       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
                         [array[y][x][z+1],       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
                         [array[y][x][z-1],       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-                            
-
-        
         
         // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
@@ -239,7 +250,7 @@ function renderWorldLegacy(distance, array, camX, camZ) {
             rotateY(checkedSide[2]);
 
             translate(0, 0, checkedSide[3]);
-            // texture(textureArray[array[y][x][z]][side[7]]);
+            texture(textureMap.get(worldDict[array[y][x][z]])[airChecklist[5]]);
 
             fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
