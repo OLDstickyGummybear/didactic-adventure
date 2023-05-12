@@ -5,7 +5,7 @@ let worldArray;
 let seed;
 let airChecklist;
 
-const BLOCKWIDTH = 100;
+const BLOCKWIDTH = 50;
 
 let textureMap;
 
@@ -18,15 +18,9 @@ const ZOOM = 20;
 
 let spawnX, spawnY, spawnZ;
 
-let renderDistance = 10;
+let renderDistance = 100;
 
-let blockDict = ['grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
-
-
-function preload() {
-  // Preloads block textures
-  
-}
+let blockDict = ['air', 'grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
   
 function importBlock(blockName, map) {
   let newArray = [];
@@ -44,8 +38,8 @@ function setup() {
 
   textureMap = new Map();
 
-  for (let block in blockDict) {
-    importBlock(block, textureMap)
+  for (let block of blockDict) {
+    importBlock(block, textureMap);
   }
 
   camera = createCamera();
@@ -72,10 +66,16 @@ function draw() {
   background(0);
   renderWorldLegacy(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
   moveCam(camera); 
-  // fill('white');
-  // plane(1000, 1000);
-  console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
-  console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
+
+  directionalLight(150, 150, 150, 1, 0, 0);
+  directionalLight(100, 100, 100, 0, 0, 1);
+  directionalLight(200, 200, 200, 0, 0, -1);
+  directionalLight(200, 200, 200, -1, 0, 0);
+  directionalLight(255, 255, 255, 0, 1, 0);
+
+
+  // console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
+  // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -231,8 +231,8 @@ function renderWorldLegacy(distance, array, camX, camZ) {
         // plane(10, 10);
 
         //              [       condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-        airChecklist = [[array[y+1][x][z],     -90,         0,  BLOCKWIDTH/2, 0, 'red'], // down
-                        [array[y-1][x][z],      90,         0,  BLOCKWIDTH/2, 2, 'orange'], // up
+        airChecklist = [[array[y+1][x][z],     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                        [array[y-1][x][z],      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
                         [array[y][x+1][z],       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
                         [array[y][x-1][z],       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
                         [array[y][x][z+1],       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
@@ -250,9 +250,9 @@ function renderWorldLegacy(distance, array, camX, camZ) {
             rotateY(checkedSide[2]);
 
             translate(0, 0, checkedSide[3]);
-            texture(textureMap.get(worldDict[array[y][x][z]])[airChecklist[5]]);
+            texture(textureMap.get(blockDict[array[y][x][z]])[checkedSide[4]]);
 
-            fill(checkedSide[5]);
+            // fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
             // box(BLOCKWIDTH, BLOCKWIDTH);
             // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)

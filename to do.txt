@@ -1,0 +1,8 @@
+To increase performance:
+1. Render only the area in front of the camera
+2. Render only the side of a block facing the camera
+
+Add sky
+
+Add hotbar
+Add Inventory
