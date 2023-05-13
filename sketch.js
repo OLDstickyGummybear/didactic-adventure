@@ -12,13 +12,13 @@ let textureMap;
 // Declares default world generation dimensions
 const GENXWIDTH = 1000;
 const GENZWIDTH = 1000;
-const GENYHEIGHT = 20;
+const GENYHEIGHT = 30;
 
 const ZOOM = 20;
 
 let spawnX, spawnY, spawnZ;
 
-let renderDistance = 100;
+let renderDistance = 15;
 
 let blockDict = ['air', 'grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
   
@@ -64,14 +64,14 @@ function setup() {
 
 function draw() {
   background(0);
-  renderWorldLegacy(renderDistance, worldArray, camera.eyeX, camera.eyeZ);
+  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera); 
 
-  directionalLight(150, 150, 150, 1, 0, 0);
-  directionalLight(100, 100, 100, 0, 0, 1);
-  directionalLight(200, 200, 200, 0, 0, -1);
-  directionalLight(200, 200, 200, -1, 0, 0);
-  directionalLight(255, 255, 255, 0, 1, 0);
+  // directionalLight(150, 150, 150, 1, 0, 0);
+  // directionalLight(100, 100, 100, 0, 0, 1);
+  // directionalLight(200, 200, 200, 0, 0, -1);
+  // directionalLight(200, 200, 200, -1, 0, 0);
+  // directionalLight(255, 255, 255, 0, 1, 0);
 
 
   // console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
@@ -216,9 +216,10 @@ function generateNoise(array, seed, zoom) {
 //   }
 // }
 
-function renderWorldLegacy(distance, array, camX, camZ) {
+function renderWorld(distance, array, camX, camZ, camY) {
   let camXB = inBlocks(camX);
   let camZB = inBlocks(camZ);
+  let camYB = inBlocks(camY);
   
   // console.log('Rendering...')
   for (let y = 1; y < array.length - 1; y ++) {
@@ -231,19 +232,19 @@ function renderWorldLegacy(distance, array, camX, camZ) {
         // plane(10, 10);
 
         //              [       condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-        airChecklist = [[array[y+1][x][z],     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                        [array[y-1][x][z],      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                        [array[y][x+1][z],       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                        [array[y][x-1][z],       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                        [array[y][x][z+1],       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                        [array[y][x][z-1],       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                        [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                        [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                        [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                        [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                        [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
         
         // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
 
         for (let checkedSide of airChecklist) {
 
-          if (array[y][x][z] !== 0 && checkedSide[0] === 0) {       
+          if (array[y][x][z] !== 0 && checkedSide[0]) {       
             push();
 
             rotateX(checkedSide[1]);
