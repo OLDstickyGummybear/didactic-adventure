@@ -1,6 +1,6 @@
 To increase performance:
-1. Render only the area in front of the camera
-2. Render only the side of a block facing the camera
+1. Render only the area in front of the camera (view frustum culling) (complete)
+2. Render only the side of a block facing the camera (occlusion culling)
 
 Add sky
 
