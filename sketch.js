@@ -21,7 +21,8 @@ let spawnX, spawnY, spawnZ;
 let renderDistance = 15;
 
 let blockDict = ['air', 'grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
-  
+// 'air' results in load errors. can be ignored as the program doesnt break
+
 function importBlock(blockName, map) {
   let newArray = [];
   for (let side = 0; side <= 2; side++) {
@@ -72,9 +73,12 @@ function draw() {
   // directionalLight(200, 200, 200, 0, 0, -1);
   // directionalLight(200, 200, 200, -1, 0, 0);
   // directionalLight(255, 255, 255, 0, 1, 0);
+  ambientLight(50);
+  directionalLight(255, 0, 0, 0.25, 0.25, 0);
+  pointLight(0, 0, 255, 100, 100, 250);
 
 
-  // console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
+  console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
@@ -112,6 +116,8 @@ function generateNoise(array, seed, zoom) {
 
   let xOffset = 0;
   let zOffset = 0;
+
+
 
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
