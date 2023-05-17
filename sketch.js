@@ -20,7 +20,7 @@ let spawnX, spawnY, spawnZ;
 
 let renderDistance = 15;
 
-let blockDict = ['air', 'grass', 'dirt', 'stone']; // List of existing blocks; used in preload() and to translate index from worldArray
+let blockDict = [['air'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block'], ['water', 'water']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
 // 'air' results in load errors. can be ignored as the program doesnt break
 
 function importBlock(blockName, map) {
@@ -40,7 +40,7 @@ function setup() {
   textureMap = new Map();
 
   for (let block of blockDict) {
-    importBlock(block, textureMap);
+    importBlock(block[0], textureMap);
   }
 
   camera = createCamera();
@@ -148,23 +148,27 @@ function renderWorld(distance, array, camX, camZ, camY) {
   let camZB = inBlocks(camZ);
   let camYB = inBlocks(camY);
   
-  // console.log('Rendering...')
   for (let y = 1; y < array.length - 1; y ++) {
-    // console.log('Rendering y')
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
-      // console.log('Rendering x')
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
-        
-        // console.log('Rendering z')
-        // plane(10, 10);
 
-        //              [       condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                        [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                        [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                        [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                        [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                        [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+        switch (blockType) {
+          case 'block':
+            //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+            airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                            [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                            [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                            [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                            [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+          case 'water':
+            airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                            [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                            [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                            [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                            [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+        }
         
         // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
@@ -178,7 +182,7 @@ function renderWorld(distance, array, camX, camZ, camY) {
             rotateY(checkedSide[2]);
 
             translate(0, 0, checkedSide[3]);
-            texture(textureMap.get(blockDict[array[y][x][z]])[checkedSide[4]]);
+            texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
 
             // fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
