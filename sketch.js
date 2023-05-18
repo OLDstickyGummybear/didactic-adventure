@@ -20,7 +20,7 @@ let spawnX, spawnY, spawnZ;
 
 let renderDistance = 15;
 
-let blockDict = [['air'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block'], ['water', 'water']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
+let blockDict = [['air', 'block'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
 // 'air' results in load errors. can be ignored as the program doesnt break
 
 function importBlock(blockName, map) {
@@ -40,7 +40,10 @@ function setup() {
   textureMap = new Map();
 
   for (let block of blockDict) {
-    importBlock(block[0], textureMap);
+    if (block[0] !== 'air') {
+      importBlock(block[0], textureMap);
+
+    }
   }
 
   camera = createCamera();
@@ -65,18 +68,22 @@ function setup() {
 
 function draw() {
   background(0);
-  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
-  moveCam(camera); 
+  ; 
 
-  // directionalLight(150, 150, 150, 1, 0, 0);
-  // directionalLight(100, 100, 100, 0, 0, 1);
-  // directionalLight(200, 200, 200, 0, 0, -1);
-  // directionalLight(200, 200, 200, -1, 0, 0);
-  // directionalLight(255, 255, 255, 0, 1, 0);
-  ambientLight(50);
-  directionalLight(255, 0, 0, 0.25, 0.25, 0);
-  pointLight(0, 0, 255, 100, 100, 250);
+  directionalLight(150, 150, 150, 1, 0, 0);
+  directionalLight(100, 100, 100, 0, 0, 1);
+  directionalLight(200, 200, 200, 0, 0, -1);
+  directionalLight(200, 200, 200, -1, 0, 0);
+  directionalLight(255, 255, 255, 0, 1, 0);
+  // ambientLight(50);
+  // directionalLight(255, 0, 0, 0.25, 0.25, 0);
+  // pointLight(0, 0, 255, 100, 100, 250);
 
+  pop();
+  fill('red');
+  translate(camera.centerX, camera.centerY, camera.centerZ);
+  sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
+  push();
 
   console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
@@ -152,7 +159,7 @@ function renderWorld(distance, array, camX, camZ, camY) {
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
 
-        switch (blockType) {
+        switch (blockDict[array[y][x][z]][1]) {
           case 'block':
             //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
             airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
@@ -167,7 +174,7 @@ function renderWorld(distance, array, camX, camZ, camY) {
                             [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
                             [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
                             [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,  BLOCKWIDTH/2, 1, 'purple']]; // north
         }
         
         // push();
