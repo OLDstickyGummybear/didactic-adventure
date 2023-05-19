@@ -68,7 +68,7 @@ function setup() {
 
 function draw() {
   background(0);
-  ; 
+  
 
   directionalLight(150, 150, 150, 1, 0, 0);
   directionalLight(100, 100, 100, 0, 0, 1);
@@ -79,13 +79,13 @@ function draw() {
   // directionalLight(255, 0, 0, 0.25, 0.25, 0);
   // pointLight(0, 0, 255, 100, 100, 250);
 
-  pop();
+  push();
   fill('red');
   translate(camera.centerX, camera.centerY, camera.centerZ);
   sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
-  push();
+  pop();
 
-  console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
+  // console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 

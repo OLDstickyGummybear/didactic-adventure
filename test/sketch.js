@@ -8,7 +8,7 @@ function setup() {
 
 function draw() {
   background(255);
-  easycam.attachMouseListeners(p5.Renderer);
+  easycam.mouseDragRotate();
 }
 
 // https://diwi.github.io/p5.EasyCam/documentation/
