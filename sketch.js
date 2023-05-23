@@ -18,15 +18,18 @@ const ZOOM = 20;
 
 let spawnX, spawnY, spawnZ;
 
+let camYaw = 0;
+let camPitch = 0;
+
 let renderDistance = 15;
 
-let blockDict = [['air', 'block'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
+let blockDict = [['air', 'block'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block'], ['log', 'block'], ['leaves', 'block']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
 // 'air' results in load errors. can be ignored as the program doesnt break
 
 function importBlock(blockName, map) {
   let newArray = [];
   for (let side = 0; side <= 2; side++) {
-    newArray.push(loadImage(`textures/${blockName}/${side}.jpg`));
+    newArray.push(loadImage(`textures/${blockName}/${side}.png`));
   }
   map.set(blockName, newArray);
 }
@@ -51,7 +54,7 @@ function setup() {
   seed = random(1000000000000000000000)
 
   worldArray = createEmpty3DArray(GENXWIDTH, GENYHEIGHT, GENZWIDTH);
-  generateNoise(worldArray, seed, ZOOM);
+  generateWorld(worldArray, seed, ZOOM);
 
   // // Calculates spawnpoint to be in the centre of the array
   spawnX = round(GENXWIDTH/2);
@@ -64,6 +67,8 @@ function setup() {
   camera.eyeX = inCoords(spawnX);
   camera.eyeY = inCoords(spawnY);
   camera.eyeZ = inCoords(spawnZ);
+
+  camera.lookAt(camera.eyeX + 10, camera.eyeY, camera.eyeZ);
 }
 
 function draw() {
@@ -85,7 +90,9 @@ function draw() {
   sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
   pop();
 
-  // console.log(`upX: ${camera.upX}, upY: ${camera.upY}, upZ: ${camera.upZ}`)
+  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
+  moveCam(camera);
+  console.log(`eyeX: ${camera.eyeX}, eyeY: ${camera.eyeY}, eyeZ: ${camera.eyeZ}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
@@ -115,7 +122,7 @@ function findSpawnY(x, z, array) {
 }
 
 // Procedurally generates terrain
-function generateNoise(array, seed, zoom) {
+function generateWorld(array, seed, zoom) {
   console.log('Generating Terrain');
   // Picks random start point for Perlin noise
   // let xOffset = random(seed);
@@ -129,7 +136,7 @@ function generateNoise(array, seed, zoom) {
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
       let yGen = round(map(noise((x + xOffset) / zoom, (z + zOffset) / zoom), 0, 1, 0, GENYHEIGHT)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
-      array[yGen][x][z] = 1; // Generates top layer; 1 is grass
+      array[yGen][x][z] = 4; // Generates top layer; 1 is grass
 
       // For each layer below the top layer
       for (let yIter = yGen + 1; yIter < array.length; yIter ++) {
@@ -168,7 +175,7 @@ function renderWorld(distance, array, camX, camZ, camY) {
                             [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
                             [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
                             [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-          case 'water':
+          case 'cross':
             airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
                             [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
                             [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
@@ -216,7 +223,23 @@ function inCoords(blocks) {
 function moveCam(cam) {
 
   cam.pan(-movedX * 0.1);
+  if (camYaw >= 360) {
+    camYaw = camYaw - 360;
+  } else if (camYaw < 0) {
+    camYaw = 360 - camYaw;
+  }
+  camYaw += -movedX * 0.1;
+
   cam.tilt(movedY * 0.1);
+  if (camPitch >= 360) {
+    camPitch = camPitch - 360;
+  } else if (camPitch < 0) {
+    camPitch = 360 - camPitch;
+  }
+  camPitch += movedY * 0.1;
+  
+
+  console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
 
   // Camera translation
   if (keyIsDown(87)) { // W
@@ -269,4 +292,8 @@ function keyPressed() {
 
 function mousePressed() {
   requestPointerLock();
+}
+
+function playerGravity() {
+
 }
