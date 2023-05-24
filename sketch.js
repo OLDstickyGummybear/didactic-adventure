@@ -222,42 +222,57 @@ function inCoords(blocks) {
 
 function moveCam(cam) {
 
-  cam.pan(-movedX * 0.1);
-  if (camYaw >= 360) {
-    camYaw = camYaw - 360;
-  } else if (camYaw < 0) {
-    camYaw = 360 - camYaw;
-  }
+  
+  // cam.pan(-movedX * 0.1);
+
+  
+  // if (camYaw >= 360) {
+  //   camYaw = camYaw - 360;
+  // } else if (camYaw < 0) {
+  //   camYaw = 360 - camYaw;
+  // }
   camYaw += -movedX * 0.1;
 
-  cam.tilt(movedY * 0.1);
-  if (camPitch >= 360) {
-    camPitch = camPitch - 360;
-  } else if (camPitch < 0) {
-    camPitch = 360 - camPitch;
-  }
+  // // cam.tilt(movedY * 0.1);
+  // if (camPitch >= 360) {
+  //   camPitch = camPitch - 360;
+  // } else if (camPitch < 0) {
+  //   camPitch = 360 - camPitch;
+  // }
   camPitch += movedY * 0.1;
+
+  camYaw = camYaw % 360 < 0 ? 360 + camYaw % 360 : camYaw % 360;
+  // camPitch = camPitch % 360 < 0 ? 360 - camPitch % 360 : camPitch % 360;
+
+
+  cam.lookAt(cam.eyeX + cos(-camYaw) * cos(camPitch), cam.eyeY + sin(camPitch), cam.eyeZ + sin(-camYaw) * cos(camPitch));
   
 
   console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
 
   // Camera translation
   if (keyIsDown(87)) { // W
-    cam.move(0, 0, -10);
+    cam.setPosition(cam.eyeX + cos(camYaw) * 10, cam.eyeY, cam.eyeZ + sin(camYaw) * 10);
+    // cam.move(0, 0, -10);
   }
   if (keyIsDown(83)) { // S
-    cam.move(0, 0, 10);
+    cam.setPosition(cam.eyeX - cos(camYaw) * 10, cam.eyeY, cam.eyeZ - sin(camYaw) * 10);
+    // cam.move(0, 0, 10);
   }
   if (keyIsDown(65)) { // A
+    // cam.setPosition(cam.eyeX - 10, cam.eyeY, cam.eyeZ);
     cam.move(-10, 0, 0);
   }
   if (keyIsDown(68)) { // D
+    // cam.setPosition(cam.eyeX + 10, cam.eyeY, cam.eyeZ);
     cam.move(10, 0, 0);
   }
   if (keyIsDown(32)) { // SPACE
+    // cam.setPosition(cam.eyeX, cam.eyeY - 10, cam.eyeZ);
     cam.move(0, -10, 0);
   }
   if (keyIsDown(16)) { // SHIFT
+    // cam.setPosition(cam.eyeX, cam.eyeY + 10, cam.eyeZ);
     cam.move(0, 10, 0);
   }
 
