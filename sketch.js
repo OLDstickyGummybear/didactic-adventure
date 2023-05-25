@@ -20,8 +20,10 @@ let spawnX, spawnY, spawnZ;
 
 let camYaw = 0;
 let camPitch = 0;
+let fov = 100;
 
 let renderDistance = 15;
+
 
 let blockDict = [['air', 'block'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block'], ['log', 'block'], ['leaves', 'block']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
 // 'air' results in load errors. can be ignored as the program doesnt break
@@ -39,17 +41,18 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
   angleMode(DEGREES);
+  noSmooth();
 
   textureMap = new Map();
 
   for (let block of blockDict) {
     if (block[0] !== 'air') {
       importBlock(block[0], textureMap);
-
     }
   }
 
   camera = createCamera();
+  camera.perspective(fov, width/height, 0.01);
 
   seed = random(1000000000000000000000)
 
@@ -61,14 +64,13 @@ function setup() {
   spawnZ = round(GENZWIDTH/2);
 
   // // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
-  spawnY = findSpawnY(spawnX, spawnZ, worldArray);
+  spawnY = findGround(spawnX, spawnZ, worldArray) - 3;
 
   // // Moves camera to spawnpoint
   camera.eyeX = inCoords(spawnX);
   camera.eyeY = inCoords(spawnY);
   camera.eyeZ = inCoords(spawnZ);
-
-  camera.lookAt(camera.eyeX + 10, camera.eyeY, camera.eyeZ);
+  camera.lookAt(camera.eyeX, camera.eye, camera.eyeZ);
 }
 
 function draw() {
@@ -91,7 +93,7 @@ function draw() {
   pop();
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
-  moveCam(camera);
+  moveCam(camera, worldArray);
   console.log(`eyeX: ${camera.eyeX}, eyeY: ${camera.eyeY}, eyeZ: ${camera.eyeZ}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
@@ -113,10 +115,10 @@ function createEmpty3DArray(width, height, length) {
 }
 
 // Finds the Y-coordinate two blocks higher than the highest block at a given X- and Z-coordinate
-function findSpawnY(x, z, array) {
+function findGround(x, z, array) {
   for (let y = 0; y < array.length; y++) {
     if (array[y][x][z] !== 0) { // If a block is at (x, y, z):
-      return y - 3;
+      return y;
     }
   }
 }
@@ -136,7 +138,7 @@ function generateWorld(array, seed, zoom) {
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
       let yGen = round(map(noise((x + xOffset) / zoom, (z + zOffset) / zoom), 0, 1, 0, GENYHEIGHT)); // Generates Perlin noise using x and z and their respective offsets, maps noise to fit in the height of the world array, and rounds to whole number
-      array[yGen][x][z] = 4; // Generates top layer; 1 is grass
+      array[yGen][x][z] = 1; // Generates top layer; 1 is grass
 
       // For each layer below the top layer
       for (let yIter = yGen + 1; yIter < array.length; yIter ++) {
@@ -220,26 +222,18 @@ function inCoords(blocks) {
   return blocks * BLOCKWIDTH;
 }
 
-function moveCam(cam) {
+function moveCam(cam, array) {
 
-  
-  // cam.pan(-movedX * 0.1);
-
-  
-  // if (camYaw >= 360) {
-  //   camYaw = camYaw - 360;
-  // } else if (camYaw < 0) {
-  //   camYaw = 360 - camYaw;
-  // }
   camYaw += -movedX * 0.1;
 
-  // // cam.tilt(movedY * 0.1);
-  // if (camPitch >= 360) {
-  //   camPitch = camPitch - 360;
-  // } else if (camPitch < 0) {
-  //   camPitch = 360 - camPitch;
-  // }
   camPitch += movedY * 0.1;
+
+  if (camPitch >= 89) {
+    camPitch = 89;
+  }
+  if (camPitch <= -89) {
+    camPitch = -89;
+  }
 
   camYaw = camYaw % 360 < 0 ? 360 + camYaw % 360 : camYaw % 360;
   // camPitch = camPitch % 360 < 0 ? 360 - camPitch % 360 : camPitch % 360;
@@ -251,29 +245,28 @@ function moveCam(cam) {
   console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
 
   // Camera translation
-  if (keyIsDown(87)) { // W
-    cam.setPosition(cam.eyeX + cos(camYaw) * 10, cam.eyeY, cam.eyeZ + sin(camYaw) * 10);
-    // cam.move(0, 0, -10);
+
+  if (keyIsDown(87)) { // W; Prototype clipping detection
+    let newCamX = cam.eyeX + cos(camYaw) * 10;
+    let newCamZ = cam.eyeZ - sin(camYaw) * 10;
+    if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX))][round(inBlocks(newCamZ))] === 0) {
+      cam.setPosition(newCamX, cam.eyeY, newCamZ);
+    }
   }
   if (keyIsDown(83)) { // S
-    cam.setPosition(cam.eyeX - cos(camYaw) * 10, cam.eyeY, cam.eyeZ - sin(camYaw) * 10);
-    // cam.move(0, 0, 10);
+    cam.setPosition(cam.eyeX - cos(camYaw) * 10, cam.eyeY, cam.eyeZ + sin(camYaw) * 10);
   }
   if (keyIsDown(65)) { // A
-    // cam.setPosition(cam.eyeX - 10, cam.eyeY, cam.eyeZ);
-    cam.move(-10, 0, 0);
+    cam.setPosition(cam.eyeX + cos(camYaw + 90) * 10, cam.eyeY, cam.eyeZ - sin(camYaw + 90) * 10);
   }
   if (keyIsDown(68)) { // D
-    // cam.setPosition(cam.eyeX + 10, cam.eyeY, cam.eyeZ);
-    cam.move(10, 0, 0);
+    cam.setPosition(cam.eyeX + cos(camYaw - 90) * 10, cam.eyeY, cam.eyeZ - sin(camYaw - 90) * 10);
   }
-  if (keyIsDown(32)) { // SPACE
-    // cam.setPosition(cam.eyeX, cam.eyeY - 10, cam.eyeZ);
-    cam.move(0, -10, 0);
+  if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
+    cam.setPosition(cam.eyeX, cam.eyeY - 10, cam.eyeZ);
   }
-  if (keyIsDown(16)) { // SHIFT
-    // cam.setPosition(cam.eyeX, cam.eyeY + 10, cam.eyeZ);
-    cam.move(0, 10, 0);
+  if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
+    cam.setPosition(cam.eyeX, cam.eyeY + 10, cam.eyeZ);
   }
 
   // Camera rotation
@@ -302,13 +295,25 @@ function keyPressed() {
   if (keyIsDown(81) && renderDistance >= 4) { // Q; minimum render distance is 4 blocks
     renderDistance --;
   }
-  
 } 
 
 function mousePressed() {
   requestPointerLock();
 }
 
-function playerGravity() {
+function detectClip(cam, array) {
+  let camXB = inBlocks(cam.eyeX);
+  let camZB = inBlocks(cam.eyeZ);
+  let camYB = inBlocks(cam.eyeY);
+
+  if (array[round(camYB)][round(camXB)][round(camZB)] === 0){}
+
+
+
+}
+
+function playerGravity(cam) {
+
+
 
 }
