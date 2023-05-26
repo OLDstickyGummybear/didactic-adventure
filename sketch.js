@@ -220,9 +220,14 @@ function inBlocks(coords) {
   return coords / BLOCKWIDTH;
 }
 
+function inBlocksRound(coords) {
+  return ceiling(coords / BLOCKWIDTH);
+}
+
 function inCoords(blocks) {
   return blocks * BLOCKWIDTH;
 }
+
 
 function moveCam(cam, array) {
   let camBumper = 7;
@@ -246,13 +251,26 @@ function moveCam(cam, array) {
 
   // Camera translation
   if (keyIsDown(87)) { // W; Prototype clipping detection
-    let newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
-    let newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
+    let newCamX;
+    let newCamZ;
 
-
-    if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX - camBumper))][round(inBlocks(newCamZ - camBumper))] === 0) {
-      cam.setPosition(newCamX, cam.eyeY, newCamZ);
+    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] != 0) {
+      newCamX = camera.eyeX;
+    } else {
+      newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
     }
+
+    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] != 0) {
+      newCamZ = camera.eyeZ;
+    } else {
+      newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
+    }
+
+    cam.setPosition(newCamX, cam.eyeY, newCamZ);
+
+    // if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX - camBumper))][round(inBlocks(newCamZ - camBumper))] === 0) {
+    //   cam.setPosition(newCamX, cam.eyeY, newCamZ);
+    // }
   }
   if (keyIsDown(83)) { // S
     cam.setPosition(cam.eyeX - cos(camYaw) * playerSpeed, cam.eyeY, cam.eyeZ + sin(camYaw) * playerSpeed);
