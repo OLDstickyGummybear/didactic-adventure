@@ -22,6 +22,8 @@ let camYaw = 0;
 let camPitch = 0;
 let fov = 100;
 
+let playerSpeed = 10;
+
 let renderDistance = 15;
 
 
@@ -223,6 +225,7 @@ function inCoords(blocks) {
 }
 
 function moveCam(cam, array) {
+  let camBumper = 7;
 
   camYaw += -movedX * 0.1;
 
@@ -236,37 +239,35 @@ function moveCam(cam, array) {
   }
 
   camYaw = camYaw % 360 < 0 ? 360 + camYaw % 360 : camYaw % 360;
-  // camPitch = camPitch % 360 < 0 ? 360 - camPitch % 360 : camPitch % 360;
-
 
   cam.lookAt(cam.eyeX + cos(-camYaw) * cos(camPitch), cam.eyeY + sin(camPitch), cam.eyeZ + sin(-camYaw) * cos(camPitch));
   
-
   console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
 
   // Camera translation
-
   if (keyIsDown(87)) { // W; Prototype clipping detection
-    let newCamX = cam.eyeX + cos(camYaw) * 10;
-    let newCamZ = cam.eyeZ - sin(camYaw) * 10;
-    if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX))][round(inBlocks(newCamZ))] === 0) {
+    let newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
+    let newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
+
+
+    if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX - camBumper))][round(inBlocks(newCamZ - camBumper))] === 0) {
       cam.setPosition(newCamX, cam.eyeY, newCamZ);
     }
   }
   if (keyIsDown(83)) { // S
-    cam.setPosition(cam.eyeX - cos(camYaw) * 10, cam.eyeY, cam.eyeZ + sin(camYaw) * 10);
+    cam.setPosition(cam.eyeX - cos(camYaw) * playerSpeed, cam.eyeY, cam.eyeZ + sin(camYaw) * playerSpeed);
   }
   if (keyIsDown(65)) { // A
-    cam.setPosition(cam.eyeX + cos(camYaw + 90) * 10, cam.eyeY, cam.eyeZ - sin(camYaw + 90) * 10);
+    cam.setPosition(cam.eyeX + cos(camYaw + 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw + 90) * playerSpeed);
   }
   if (keyIsDown(68)) { // D
-    cam.setPosition(cam.eyeX + cos(camYaw - 90) * 10, cam.eyeY, cam.eyeZ - sin(camYaw - 90) * 10);
+    cam.setPosition(cam.eyeX + cos(camYaw - 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw - 90) * playerSpeed);
   }
   if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
-    cam.setPosition(cam.eyeX, cam.eyeY - 10, cam.eyeZ);
+    cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
   }
   if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
-    cam.setPosition(cam.eyeX, cam.eyeY + 10, cam.eyeZ);
+    cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
   }
 
   // Camera rotation
