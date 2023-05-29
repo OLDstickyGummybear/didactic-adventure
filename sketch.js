@@ -96,7 +96,7 @@ function draw() {
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera, worldArray);
-  console.log(`eyeX: ${camera.eyeX}, eyeY: ${camera.eyeY}, eyeZ: ${camera.eyeZ}`)
+  console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
@@ -221,7 +221,7 @@ function inBlocks(coords) {
 }
 
 function inBlocksRound(coords) {
-  return ceiling(coords / BLOCKWIDTH);
+  return Math.ceil(coords / BLOCKWIDTH);
 }
 
 function inCoords(blocks) {
@@ -254,14 +254,16 @@ function moveCam(cam, array) {
     let newCamX;
     let newCamZ;
 
-    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] != 0) {
+    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * sin(camYaw) + cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
       newCamX = camera.eyeX;
+      // array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] = 2;
     } else {
       newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
     }
 
-    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] != 0) {
+    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw) + cam.eyeZ)] !== 0) {
       newCamZ = camera.eyeZ;
+      // array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] = 2;
     } else {
       newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
     }
