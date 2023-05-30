@@ -96,7 +96,7 @@ function draw() {
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera, worldArray);
-  console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
+  // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
 }
 
@@ -200,9 +200,9 @@ function renderWorld(distance, array, camX, camZ, camY) {
             rotateY(checkedSide[2]);
 
             translate(0, 0, checkedSide[3]);
-            texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+            // texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
 
-            // fill(checkedSide[5]);
+            fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
             // box(BLOCKWIDTH, BLOCKWIDTH);
             // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
@@ -221,7 +221,7 @@ function inBlocks(coords) {
 }
 
 function inBlocksRound(coords) {
-  return Math.ceil(coords / BLOCKWIDTH);
+  return round(coords / BLOCKWIDTH);
 }
 
 function inCoords(blocks) {
@@ -247,48 +247,59 @@ function moveCam(cam, array) {
 
   cam.lookAt(cam.eyeX + cos(-camYaw) * cos(camPitch), cam.eyeY + sin(camPitch), cam.eyeZ + sin(-camYaw) * cos(camPitch));
   
-  console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
+  // console.log(`yaw: ${camYaw}, pitch: ${camPitch}`)
+  let newCamX = cam.eyeX;
+  let newCamZ = cam.eyeZ;
+  let newCamY = cam.eyeY;
 
   // Camera translation
   if (keyIsDown(87)) { // W; Prototype clipping detection
-    let newCamX;
-    let newCamZ;
+    
 
-    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * sin(camYaw) + cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
-      newCamX = camera.eyeX;
-      // array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] = 2;
-    } else {
-      newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
-    }
-
-    if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw) + cam.eyeZ)] !== 0) {
-      newCamZ = camera.eyeZ;
-      // array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] = 2;
-    } else {
-      newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
-    }
-
-    cam.setPosition(newCamX, cam.eyeY, newCamZ);
-
-    // if (array[round(inBlocks(cam.eyeY))][round(inBlocks(newCamX - camBumper))][round(inBlocks(newCamZ - camBumper))] === 0) {
-    //   cam.setPosition(newCamX, cam.eyeY, newCamZ);
+    // if (array[inBlocksRound(cam.eyeY)][inBlocksRound(-camBumper * sin(camYaw) + cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
+    //   newCamX = camera.eyeX;
+    //   // array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] = 2;
+    // } else {
+    //   newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
     // }
+
+    // if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw) + cam.eyeZ)] !== 0) {
+    //   newCamZ = camera.eyeZ;
+    //   // array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] = 2;
+    // } else {
+    //   newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
+    // }
+    newCamX += cos(camYaw) * playerSpeed;
+    newCamZ += -sin(camYaw) * playerSpeed;
   }
+
   if (keyIsDown(83)) { // S
-    cam.setPosition(cam.eyeX - cos(camYaw) * playerSpeed, cam.eyeY, cam.eyeZ + sin(camYaw) * playerSpeed);
+    // cam.setPosition(cam.eyeX - cos(camYaw) * playerSpeed, cam.eyeY, cam.eyeZ + sin(camYaw) * playerSpeed);
+    newCamX += -cos(camYaw) * playerSpeed;
+    newCamZ += sin(camYaw) * playerSpeed;
   }
   if (keyIsDown(65)) { // A
-    cam.setPosition(cam.eyeX + cos(camYaw + 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw + 90) * playerSpeed);
+    // cam.setPosition(cam.eyeX + cos(camYaw + 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw + 90) * playerSpeed);
+    newCamX += -sin(camYaw) * playerSpeed;
+    newCamZ += -cos(camYaw) * playerSpeed;
   }
   if (keyIsDown(68)) { // D
-    cam.setPosition(cam.eyeX + cos(camYaw - 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw - 90) * playerSpeed);
+    // cam.setPosition(cam.eyeX + cos(camYaw - 90) * playerSpeed, cam.eyeY, cam.eyeZ - sin(camYaw - 90) * playerSpeed);
+    newCamX += sin(camYaw) * playerSpeed;
+    newCamZ += cos(camYaw) * playerSpeed;
   }
   if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
-    cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
+    // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
+    newCamY += -playerSpeed
   }
   if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
-    cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
+    // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
+    newCamY += playerSpeed
   }
+
+  // if newCamX is in another block check relevant block. if there is block then change it back to cam.eyeX. et cetera
+
+  cam.setPosition(newCamX, newCamY, newCamZ);
 
   // Camera rotation
   if (keyIsDown(LEFT_ARROW)) { // <-
