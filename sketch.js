@@ -14,7 +14,7 @@ const GENXWIDTH = 1000;
 const GENZWIDTH = 1000;
 const GENYHEIGHT = 30;
 
-const ZOOM = 20;
+const ZOOM = 100;
 
 let spawnX, spawnY, spawnZ;
 
@@ -23,6 +23,7 @@ let camPitch = 0;
 let fov = 100;
 
 let playerSpeed = 10;
+let playerHeight = 1.5;
 
 let renderDistance = 15;
 
@@ -88,11 +89,11 @@ function draw() {
   // directionalLight(255, 0, 0, 0.25, 0.25, 0);
   // pointLight(0, 0, 255, 100, 100, 250);
 
-  push();
-  fill('red');
-  translate(camera.centerX, camera.centerY, camera.centerZ);
-  sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
-  pop();
+  // push();
+  // fill('red');
+  // translate(camera.centerX, camera.centerY, camera.centerZ);
+  // sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
+  // pop();
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera, worldArray);
@@ -200,9 +201,9 @@ function renderWorld(distance, array, camX, camZ, camY) {
             rotateY(checkedSide[2]);
 
             translate(0, 0, checkedSide[3]);
-            // texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+            texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
 
-            fill(checkedSide[5]);
+            // fill(checkedSide[5]);
             plane(BLOCKWIDTH, BLOCKWIDTH);
             // box(BLOCKWIDTH, BLOCKWIDTH);
             // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
@@ -254,21 +255,6 @@ function moveCam(cam, array) {
 
   // Camera translation
   if (keyIsDown(87)) { // W; Prototype clipping detection
-    
-
-    // if (array[inBlocksRound(cam.eyeY)][inBlocksRound(-camBumper * sin(camYaw) + cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
-    //   newCamX = camera.eyeX;
-    //   // array[inBlocksRound(cam.eyeY)][inBlocksRound(camBumper * -sin(camYaw))][inBlocksRound(cam.eyeZ)] = 2;
-    // } else {
-    //   newCamX = cam.eyeX + cos(camYaw) * playerSpeed;
-    // }
-
-    // if (array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw) + cam.eyeZ)] !== 0) {
-    //   newCamZ = camera.eyeZ;
-    //   // array[inBlocksRound(cam.eyeY)][inBlocksRound(cam.eyeX)][inBlocksRound(camBumper * cos(camYaw))] = 2;
-    // } else {
-    //   newCamZ = cam.eyeZ - sin(camYaw) * playerSpeed;
-    // }
     newCamX += cos(camYaw) * playerSpeed;
     newCamZ += -sin(camYaw) * playerSpeed;
   }
@@ -290,30 +276,29 @@ function moveCam(cam, array) {
   }
   if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
-    newCamY += -playerSpeed
+    newCamY += -playerSpeed;
   }
   if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
-    newCamY += playerSpeed
+    newCamY += playerSpeed;
   }
 
   // if newCamX is in another block check relevant block. if there is block then change it back to cam.eyeX. et cetera
+  let newCamYD = cam.eyeY - newCamY;
+  let newCamXD = cam.eyeX - newCamX;
+  let newCamZD = cam.eyeZ - newCamZ;
+
+  if (array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
+    newCamY = cam.eyeY;
+  }
+  if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(newCamX)][inBlocksRound(cam.eyeZ)] !== 0) {
+    newCamX = cam.eyeX;
+  }
+  if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(newCamZ)] !== 0) {
+    newCamZ = cam.eyeZ;
+  }
 
   cam.setPosition(newCamX, newCamY, newCamZ);
-
-  // Camera rotation
-  if (keyIsDown(LEFT_ARROW)) { // <-
-    cam.pan(1);
-  }
-  if (keyIsDown(RIGHT_ARROW)) { // ->
-    cam.pan(-1);
-  }
-  if (keyIsDown(UP_ARROW)) { // ^
-    cam.tilt(-1);
-  }
-  if (keyIsDown(DOWN_ARROW)) { // v
-    cam.tilt(1);
-  }
 
   // Logs cam coordinates in blocks
   // console.log(`x: ${(inBlocks(camera.eyeX)).toFixed(2)}, y: ${(inBlocks(camera.eyeY)).toFixed(2)}, z: ${(inBlocks(camera.eyeZ)).toFixed(2)}`);
