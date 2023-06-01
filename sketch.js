@@ -14,7 +14,7 @@ const GENXWIDTH = 1000;
 const GENZWIDTH = 1000;
 const GENYHEIGHT = 30;
 
-const ZOOM = 100;
+const ZOOM = 20;
 
 let spawnX, spawnY, spawnZ;
 
@@ -24,6 +24,7 @@ let fov = 100;
 
 let playerSpeed = 10;
 let playerHeight = 1.5;
+let camYD = 0;
 
 let renderDistance = 15;
 
@@ -274,9 +275,15 @@ function moveCam(cam, array) {
     newCamX += sin(camYaw) * playerSpeed;
     newCamZ += cos(camYaw) * playerSpeed;
   }
+  // if (keyIsDown(32) && camYD === 0) { // SPACE; REMOVE ONCE GRAVITY WORKS
+  //   // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
+  //   // newCamY += -playerSpeed;
+  //   camYD += 10;
+  // }
   if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
     newCamY += -playerSpeed;
+    
   }
   if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
@@ -288,8 +295,11 @@ function moveCam(cam, array) {
   let newCamXD = cam.eyeX - newCamX;
   let newCamZD = cam.eyeZ - newCamZ;
 
-  if (array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
+  // newCamY = playerGravity(camera);
+
+  if (inBlocks(newCamY) >= array.length || array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
     newCamY = cam.eyeY;
+    // camYD = 0;
   }
   if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(newCamX)][inBlocksRound(cam.eyeZ)] !== 0) {
     newCamX = cam.eyeX;
@@ -331,6 +341,8 @@ function detectClip(cam, array) {
 
 function playerGravity(cam) {
 
+  camYD += 0.1 + camYD;
+  return cam.eyeY + camYD;
 
 
 }
