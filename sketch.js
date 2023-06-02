@@ -275,32 +275,42 @@ function moveCam(cam, array) {
     newCamX += sin(camYaw) * playerSpeed;
     newCamZ += cos(camYaw) * playerSpeed;
   }
-  // if (keyIsDown(32) && camYD === 0) { // SPACE; REMOVE ONCE GRAVITY WORKS
-  //   // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
-  //   // newCamY += -playerSpeed;
-  //   camYD += 10;
-  // }
   if (keyIsDown(32)) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
-    newCamY += -playerSpeed;
-    
+    camYD = -10;
   }
+  
   if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
     newCamY += playerSpeed;
   }
 
   // if newCamX is in another block check relevant block. if there is block then change it back to cam.eyeX. et cetera
-  let newCamYD = cam.eyeY - newCamY;
-  let newCamXD = cam.eyeX - newCamX;
-  let newCamZD = cam.eyeZ - newCamZ;
+  // let newCamYD = cam.eyeY - newCamY;
+  // let newCamXD = cam.eyeX - newCamX;
+  // let newCamZD = cam.eyeZ - newCamZ;
 
-  // newCamY = playerGravity(camera);
+  // playerGravity(camera, newCamY);
 
-  if (inBlocks(newCamY) >= array.length || array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
-    newCamY = cam.eyeY;
-    // camYD = 0;
+  // if (inBlocksRound(newCamY + inCoords(playerHeight)) < array.length) {
+  if (array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
+    newCamY = cam.eyeY - 1;
+    camYD = 0;
+  } else {
+    newCamY += camYD;
+    camYD += 1;
   }
+  // if (array[inBlocksRound(newCamY + inCoords(playerHeight))][inBlocksRound(cam.eyeX)][inBlocksRound(cam.eyeZ)] !== 0) {
+  
+  //   camYD = 0;
+  // } else {
+  //   if (newCamY >= inCoords(inBlocksRound(newCamY + inCoords(playerHeight)))) {
+  //     newCamY += inCoords(inBlocksRound(newCamY + inCoords(playerHeight))) - cam.eyeY;
+  //   } else {
+  //     newCamY += camYD;
+  //   }
+  //   camYD += 1;
+  // }
   if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(newCamX)][inBlocksRound(cam.eyeZ)] !== 0) {
     newCamX = cam.eyeX;
   }
@@ -308,6 +318,7 @@ function moveCam(cam, array) {
     newCamZ = cam.eyeZ;
   }
 
+  console.log(camYD);
   cam.setPosition(newCamX, newCamY, newCamZ);
 
   // Logs cam coordinates in blocks
@@ -339,10 +350,6 @@ function detectClip(cam, array) {
 
 }
 
-function playerGravity(cam) {
-
-  camYD += 0.1 + camYD;
-  return cam.eyeY + camYD;
-
+function playerGravity(cam, newCamY) {
 
 }

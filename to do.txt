@@ -7,3 +7,6 @@ Add sky
 
 Add hotbar
 Add Inventory
+
+Add XZ inertia
+Allow player to go out of bound
