@@ -1,14 +1,22 @@
-let easycam;
+let testArray = [5, 15, 3, 8, 9, 1, 20, 7];
 
 function setup() {
-  createCanvas(500, 500);
-  easycam = createEasyCam();
-  
+  selectionSort(testArray);
+  console.log(testArray);
 }
 
-function draw() {
-  background(255);
-  easycam.mouseDragRotate();
+function selectionSort(list) {
+  for (let destination = list.length - 1; destination > 1; destination --) {
+    
+    let biggest = 0;
+    for (let i = 1; i < 1 - destination; i ++) {
+      if (list[i] > list[biggest]) {
+        i = biggest
+      }
+    }
+    
+    let tempVar = list[destination];
+    list[destination] = list[biggest];
+    list[biggest] = tempVar;
+  }
 }
-
-// https://diwi.github.io/p5.EasyCam/documentation/
