@@ -10,8 +10,8 @@ const BLOCKWIDTH = 50;
 let textureMap;
 
 // Declares default world generation dimensions
-const GENXWIDTH = 2000;
-const GENZWIDTH = 2000;
+const GENXWIDTH = 1000;
+const GENZWIDTH = 1000;
 const GENYHEIGHT = 30;
 
 const ZOOM = 20;
@@ -22,8 +22,8 @@ let camYaw = 0;
 let camPitch = 0;
 let fov = 100;
 
-let walkSpeed = 10;
-let sprintSpeed = 15;
+let walkSpeed = 6;
+let sprintSpeed = 11;
 let playerHeight = 1.5;
 let camYD = 0;
 let isInAir = false;
@@ -33,7 +33,7 @@ const GRAVITY = 2;
 let renderDistance = 15;
 
 
-let blockDict = [['air', 'block'], ['grass', 'block'], ['dirt', 'block'], ['stone', 'block'], ['log', 'block'], ['leaves', 'block']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
+let blockDict = [['air', 'empty'], ['grass', 'solid'], ['dirt', 'solid'], ['stone', 'solid'], ['log', 'solid'], ['leaves', 'transparent']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
 // 'air' results in load errors. can be ignored as the program doesnt break
 
 function importBlock(blockName, map) {
@@ -167,23 +167,13 @@ function renderWorld(distance, array, camX, camZ, camY) {
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
 
-        switch (blockDict[array[y][x][z]][1]) {
-          case 'block':
-            //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-            airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                            [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                            [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                            [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                            [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-          case 'cross':
-            airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                            [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                            [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                            [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                            [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                            [array[y][x][z-1] === 0 && z > camZB,       0,       180,  BLOCKWIDTH/2, 1, 'purple']]; // north
-        }
+        //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                        [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                        [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                        [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                        [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                        [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
         
         // push();
         translate(inCoords(x), inCoords(y), inCoords(z));
@@ -284,9 +274,9 @@ function moveCam(cam, array) {
   //   newCamY += playerSpeed;
   // }
 
-  if (!isInBlock(cam, cam.eyeX, newCamY, cam.eyeZ)) {
+  if (!isInBlock(cam.eyeX, newCamY, cam.eyeZ)) {
     newCamY += camYD;
-    if (isInBlock(cam, cam.eyeX, newCamY, cam.eyeZ)) {
+    if (isInBlock(cam.eyeX, newCamY, cam.eyeZ)) {
       newCamY = inCoords(inBlocksRound(newCamY)) - 1; //  -  inCoords(playerHeight)     + BLOCKWIDTH/2
       // newCamY -= camYD
       isInAir = false;
@@ -304,7 +294,7 @@ function moveCam(cam, array) {
     newCamZ = cam.eyeZ;
   }
 
-  // console.log(isInBlock(cam, newCamX, newCamY, newCamZ));
+  // console.log(isInBlock(newCamX, newCamY, newCamZ));
   cam.setPosition(newCamX, newCamY, newCamZ);
 
   // Logs cam coordinates in blocks
@@ -326,6 +316,16 @@ function mousePressed() {
   requestPointerLock();
 }
 
-function isInBlock(cam, x, y, z) {
+function isInBlock(x, y, z) {
   return worldArray[inBlocksRound(y + inCoords(playerHeight))][inBlocksRound(x)][inBlocksRound(z)] !== 0
+}
+
+function saveGame(slot, name, date, array) {
+  saveFile = new Map();
+  saveFile.set('saveName', name);
+  saveFile.set('saveDate', date);
+  saveFile.set('playerData', [cam.eyeX, cam.eyeY, cam.eyeZ, camPitch, camYaw]);
+  saveFile.set('worldArray', array);
+  
+  saveJSON(saveFile, `saves/slot${slot}.json`);
 }
