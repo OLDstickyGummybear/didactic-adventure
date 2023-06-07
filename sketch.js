@@ -10,8 +10,8 @@ const BLOCKWIDTH = 50;
 let textureMap;
 
 // Declares default world generation dimensions
-const GENXWIDTH = 1000;
-const GENZWIDTH = 1000;
+const GENXWIDTH = 2000;
+const GENZWIDTH = 2000;
 const GENYHEIGHT = 30;
 
 const ZOOM = 20;
@@ -22,7 +22,8 @@ let camYaw = 0;
 let camPitch = 0;
 let fov = 100;
 
-let playerSpeed = 10;
+let walkSpeed = 10;
+let sprintSpeed = 15;
 let playerHeight = 1.5;
 let camYD = 0;
 let isInAir = false;
@@ -224,6 +225,7 @@ function inCoords(blocks) {
 
 function moveCam(cam, array) {
   let camBumper = 7;
+  let playerSpeed = walkSpeed;
 
   camYaw += -movedX * 0.1;
 
@@ -244,6 +246,10 @@ function moveCam(cam, array) {
   let newCamX = cam.eyeX;
   let newCamZ = cam.eyeZ;
   let newCamY = cam.eyeY;
+
+  if (keyIsDown(82)) { // R
+    playerSpeed = sprintSpeed;
+  }
 
   // Camera translation
   if (keyIsDown(87)) { // W; Prototype clipping detection
