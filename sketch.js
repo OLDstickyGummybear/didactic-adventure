@@ -89,15 +89,6 @@ function draw() {
   directionalLight(200, 200, 200, 0, 0, -1);
   directionalLight(200, 200, 200, -1, 0, 0);
   directionalLight(255, 255, 255, 0, 1, 0);
-  // ambientLight(50);
-  // directionalLight(255, 0, 0, 0.25, 0.25, 0);
-  // pointLight(0, 0, 255, 100, 100, 250);
-
-  // push();
-  // fill('red');
-  // translate(camera.centerX, camera.centerY, camera.centerZ);
-  // sphere(10000000); //dist(camera.centerX, camera.centerY, camera.centerZ, camera.eyeX, camera.eyeY, camera.eyeZ) / 10
-  // pop();
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera, worldArray);
