@@ -25,6 +25,9 @@ let fov = 100;
 let playerSpeed = 10;
 let playerHeight = 1.5;
 let camYD = 0;
+let isInAir = false;
+
+const GRAVITY = 2;
 
 let renderDistance = 15;
 
@@ -272,29 +275,29 @@ function moveCam(cam, array) {
     newCamX += sin(camYaw) * playerSpeed;
     newCamZ += cos(camYaw) * playerSpeed;
   }
-  if (keyIsDown(32) && isInBlock(cam, cam.eyeX, cam.eyeY, cam.eyeZ)) { // SPACE; REMOVE ONCE GRAVITY WORKS
+  if (keyIsDown(32) && isInAir === false) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
-    camYD = -10;
+    camYD = -15;
+    isInAir = true;
+    newCamY -= 0.1;
   }
   
-  if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
-    // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
-    newCamY += playerSpeed;
-  }
+  // if (keyIsDown(16)) { // SHIFT; REMOVE ONCE GRAVITY WORKS
+  //   // cam.setPosition(cam.eyeX, cam.eyeY + playerSpeed, cam.eyeZ);
+  //   newCamY += playerSpeed;
+  // }
 
-
-  if (isInBlock(cam, newCamX, newCamY, newCamZ)) { // if camera is in a block
-    newCamY = cam.eyeY - 1;
-    camYD = 0;
-  } else {
-    if (isInBlock(cam, newCamX, newCamY + camYD, newCamZ)) { // if camera accelerating downwards will be in block
-      newCamY = cam.eyeX + camYD - (inCoords(findGround(inBlocksRound(newCamX), inBlocksRound(newCamZ), worldArray)) - BLOCKWIDTH /2);
+  if (!isInBlock(cam, cam.eyeX, newCamY, cam.eyeZ)) {
+    newCamY += camYD;
+    if (isInBlock(cam, cam.eyeX, newCamY, cam.eyeZ)) {
+      newCamY = inCoords(inBlocksRound(newCamY)) - 1; //  -  inCoords(playerHeight)     + BLOCKWIDTH/2
+      // newCamY -= camYD
+      isInAir = false;
+      camYD = 0;
     } else {
-      newCamY += camYD;
-
+      camYD += GRAVITY;
     }
-
-    camYD += 1;
+    
   }
 
   if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(newCamX)][inBlocksRound(cam.eyeZ)] !== 0) {
@@ -304,12 +307,12 @@ function moveCam(cam, array) {
     newCamZ = cam.eyeZ;
   }
 
-  console.log(camYD);
+  // console.log(isInBlock(cam, newCamX, newCamY, newCamZ));
   cam.setPosition(newCamX, newCamY, newCamZ);
 
   // Logs cam coordinates in blocks
   // console.log(`x: ${(inBlocks(camera.eyeX)).toFixed(2)}, y: ${(inBlocks(camera.eyeY)).toFixed(2)}, z: ${(inBlocks(camera.eyeZ)).toFixed(2)}`);
-  console.log(`x: ${cam.eyeX}, y: ${cam.eyeY}, z: ${cam.eyeZ}`);
+  // console.log(`x: ${cam.eyeX}, y: ${cam.eyeY}, z: ${cam.eyeZ}`);
 }
 
 function keyPressed() {
@@ -324,17 +327,6 @@ function keyPressed() {
 
 function mousePressed() {
   requestPointerLock();
-}
-
-function detectClip(cam, array) {
-  let camXB = inBlocks(cam.eyeX);
-  let camZB = inBlocks(cam.eyeZ);
-  let camYB = inBlocks(cam.eyeY);
-
-  if (array[round(camYB)][round(camXB)][round(camZB)] === 0){}
-
-
-
 }
 
 function isInBlock(cam, x, y, z) {
