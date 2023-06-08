@@ -8,5 +8,7 @@ Add sky
 Add hotbar
 Add Inventory
 
-Add XZ inertia
 Allow player to go out of bound
+
+Add esc menu that can reset world or save
+save menu will have 5 slots to save into

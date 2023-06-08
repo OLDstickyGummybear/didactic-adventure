@@ -44,11 +44,16 @@ function importBlock(blockName, map) {
   map.set(blockName, newArray);
 }
 
+let canvas3D;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(windowWidth, windowHeight);
+
+  canvas3D = createGraphics(windowWidth/(0.5), windowHeight/(0.5), WEBGL);
   noStroke();
   angleMode(DEGREES);
+  canvas3D.noStroke();
+  canvas3D.angleMode(DEGREES);
   noSmooth();
 
   textureMap = new Map();
@@ -59,7 +64,7 @@ function setup() {
     }
   }
 
-  camera = createCamera();
+  camera = canvas3D.createCamera();
   camera.perspective(fov, width/height, 0.01);
 
   seed = random(1000000000000000000000)
@@ -82,19 +87,22 @@ function setup() {
 }
 
 function draw() {
-  background(120, 167, 255);
+  canvas3D.background(120, 167, 255);
   
 
-  directionalLight(150, 150, 150, 0.1, 0, 0);
-  directionalLight(100, 100, 100, 0, 0, 0.1);
-  directionalLight(200, 200, 200, 0, 0, -0.1);
-  directionalLight(200, 200, 200, -0.1, 0, 0);
-  directionalLight(255, 255, 255, 0, 0.1, 0);
+  canvas3D.directionalLight(150, 150, 150, 1, 0, 0);
+  canvas3D.directionalLight(100, 100, 100, 0, 0, 1);
+  canvas3D.directionalLight(200, 200, 200, 0, 0, -1);
+  canvas3D.directionalLight(200, 200, 200, -1, 0, 0);
+  canvas3D.directionalLight(255, 255, 255, 0, 1, 0);
 
   renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
   moveCam(camera, worldArray);
   // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
   // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
+
+  image(canvas3D,0, 0, width, height);
+
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -176,28 +184,28 @@ function renderWorld(distance, array, camX, camZ, camY) {
                         [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
         
         // push();
-        translate(inCoords(x), inCoords(y), inCoords(z));
+        canvas3D.translate(inCoords(x), inCoords(y), inCoords(z));
 
         for (let checkedSide of airChecklist) {
 
           if (array[y][x][z] !== 0 && checkedSide[0]) {       
-            push();
+            canvas3D.push();
 
-            rotateX(checkedSide[1]);
-            rotateY(checkedSide[2]);
+            canvas3D.rotateX(checkedSide[1]);
+            canvas3D.rotateY(checkedSide[2]);
 
-            translate(0, 0, checkedSide[3]);
-            texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+            canvas3D.translate(0, 0, checkedSide[3]);
+            canvas3D.texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
 
             // fill(checkedSide[5]);
-            plane(BLOCKWIDTH, BLOCKWIDTH);
+            canvas3D.plane(BLOCKWIDTH, BLOCKWIDTH);
             // box(BLOCKWIDTH, BLOCKWIDTH);
             // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
 
-            pop();
+            canvas3D.pop();
           }
         }
-        translate(inCoords(-x), inCoords(-y), inCoords(-z));
+        canvas3D.translate(inCoords(-x), inCoords(-y), inCoords(-z));
       }
     }
   }
@@ -327,7 +335,7 @@ function saveGame(slot, name, date, array) {
   saveFile.set('playerData', [cam.eyeX, cam.eyeY, cam.eyeZ, camPitch, camYaw]);
   saveFile.set('worldArray', array);
   
-  storeItem(`slot${slot}`, saveFile);
+  saveJSON(saveFile, `saves/slot${slot}.json`);
 }
 
 function loadGame(filePath) {
