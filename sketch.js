@@ -30,6 +30,8 @@ let isInAir = false;
 
 const GRAVITY = 2;
 
+let isInMenu = false;
+
 let renderDistance = 15;
 
 
@@ -82,19 +84,23 @@ function setup() {
 }
 
 function draw() {
-  background(120, 167, 255);
+  if (isInMenu) {
+    renderMenu();
+  } else {
+    background(120, 167, 255);
   
 
-  directionalLight(150, 150, 150, 0.1, 0, 0);
-  directionalLight(100, 100, 100, 0, 0, 0.1);
-  directionalLight(200, 200, 200, 0, 0, -0.1);
-  directionalLight(200, 200, 200, -0.1, 0, 0);
-  directionalLight(255, 255, 255, 0, 0.1, 0);
-
-  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
-  moveCam(camera, worldArray);
-  // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
-  // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
+    directionalLight(150, 150, 150, 0.1, 0, 0);
+    directionalLight(100, 100, 100, 0, 0, 0.1);
+    directionalLight(200, 200, 200, 0, 0, -0.1);
+    directionalLight(200, 200, 200, -0.1, 0, 0);
+    directionalLight(255, 255, 255, 0, 0.1, 0);
+  
+    renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
+    moveCam(camera, worldArray);
+    // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
+    // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
+  }
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -262,7 +268,7 @@ function moveCam(cam, array) {
     newCamX += sin(camYaw) * playerSpeed;
     newCamZ += cos(camYaw) * playerSpeed;
   }
-  if (keyIsDown(32) && isInAir === false) { // SPACE; REMOVE ONCE GRAVITY WORKS
+  if (keyIsDown(32) && !isInAir) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
     camYD = -15;
     isInAir = true;
@@ -310,27 +316,97 @@ function keyPressed() {
   if (keyIsDown(81) && renderDistance >= 4) { // Q; minimum render distance is 4 blocks
     renderDistance --;
   }
+  if (keyIsDown(67)) {
+    isInMenu = !isInMenu;
+  }
 } 
 
 function mousePressed() {
-  requestPointerLock();
+  if (!isInMenu) {
+    requestPointerLock();
+  }
 }
 
 function isInBlock(x, y, z) {
   return worldArray[inBlocksRound(y + inCoords(playerHeight))][inBlocksRound(x)][inBlocksRound(z)] !== 0
 }
 
-function saveGame(slot, name, date, array) {
-  saveFile = new Map();
-  saveFile.set('saveName', name);
-  saveFile.set('saveDate', date);
-  saveFile.set('playerData', [cam.eyeX, cam.eyeY, cam.eyeZ, camPitch, camYaw]);
-  saveFile.set('worldArray', array);
+function saveGame(slot, name, date, array, cam) {
+  let saveObject = new Map();
+  saveObject.set('saveName', name);
+  saveObject.set('saveDate', date);
+  saveObject.set('playerX', cam.eyeX);
+  saveObject.set('playerY', cam.eyeY);
+  saveObject.set('playerZ', cam.eyeZ);
+  saveObject.set('camPitch', camPitch);
+  saveObject.set('camYaw', camYaw);
+  saveObject.set('worldArray', array);
   
-  storeItem(`slot${slot}`, saveFile);
+  storeItem(`slot${slot}`, saveObject);
 }
 
-function loadGame(filePath) {
-  loadJSON(filePath);
-  worldArray = file.get
+function loadGame(slot) {
+  let retrievedObject = getItem(`slot${slot}`);
+  worldArray = retrievedObject.get('worldArray');
+  cam.eyeX = retrievedObject.get('playerX');
+  cam.eyeY = retrievedObject.get('playerY');
+  cam.eyeZ = retrievedObject.get('playerZ');
+  camPitch = retrievedObject.get('camPitch');
+  camYaw = retrievedObject.get('camYaw');
+}
+
+function renderMenu() {
+  background(10, 10, 10, 50);
+}
+
+class button {
+  constructor(x1, y1, x2, y2, text) {
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+    this.text = text;
+
+    this.edge = 5;
+     // [top/left edge, middle, bottom/right edge]
+    this.defaultColor = [171, 110, 87];
+    this.hoverColor = [[189, 198, 255], [126, 136, 191], [89, 99, 154]];
+    this.pressedColor = 
+    this.mode = "default"; // can be default, hovering, or pressed
+  }
+  display() {
+    if (mode === 'default') {
+      // draw a rectangle border
+      fill(this.defaultColor[0])
+      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
+      fill(this.defaultColor[1])
+      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
+      fill(this.defaultColor[2])
+      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
+    }
+    if (mode === 'hovering') {
+      // draw a rectangle border
+      fill(this.hoverColor[0])
+      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
+      fill(this.hoverColor[1])
+      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
+      fill(this.hoverColor[2])
+      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
+    }
+    if (mode === 'pressed') {
+      // draw a rectangle border
+      fill(this.pressedColor[0])
+      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
+      fill(this.pressedColor[1])
+      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
+      fill(this.pressedColor[2])
+      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
+    }
+  }
+  checkHover() {
+
+  }
+  checkPressed() { // put in mousePressed() {}
+     mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2;
+  }
 }
