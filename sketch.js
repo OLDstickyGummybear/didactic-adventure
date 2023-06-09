@@ -1,6 +1,7 @@
 // north == -z; south == +z; west == -x; east = +x; up == -y; down == +y
 
 let worldArray;
+let menuButtonArray = []; // every array inside the menu array is a separate level, in which buttons are stored
 
 let seed;
 let airChecklist;
@@ -32,7 +33,13 @@ const GRAVITY = 2;
 
 let isInMenu = false;
 
+let boldFont, regFont;
+
 let renderDistance = 15;
+
+let activeMenuLayer = 0;
+let testButton, resetButton, storeButton, resumeButton;
+let slot1Button, slot2Button, slot3Button, slot4Button, slot5Button;
 
 
 let blockDict = [['air', 'empty'], ['grass', 'solid'], ['dirt', 'solid'], ['stone', 'solid'], ['log', 'solid'], ['leaves', 'transparent']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
@@ -52,6 +59,12 @@ function setup() {
   noStroke();
   angleMode(DEGREES);
   noSmooth();
+  textAlign(CENTER);
+
+  menuCanvas = createCanvas(windowWidth, windowHeight);
+  
+  boldFont = loadFont('fonts/bold.otf');
+  regFont = loadFont('fonts/regular.otf');
 
   textureMap = new Map();
 
@@ -81,6 +94,8 @@ function setup() {
   camera.eyeY = inCoords(spawnY);
   camera.eyeZ = inCoords(spawnZ);
   camera.lookAt(camera.eyeX, camera.eye, camera.eyeZ);
+
+  initiateMenu();
 }
 
 function draw() {
@@ -101,6 +116,7 @@ function draw() {
     // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
     // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
   }
+
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -172,40 +188,71 @@ function renderWorld(distance, array, camX, camZ, camY) {
   for (let y = 1; y < array.length - 1; y ++) {
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
-        if (array[y][x][z] !== 0) {
-          thisBlockType = blockDict[array[y][x][z]][1];
-  
-          //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-          airChecklist = [[blockDict[array[y+1][x][z]][1] === thisBlockType && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                          [blockDict[array[y-1][x][z]][1] === thisBlockType && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                          [blockDict[array[y][x+1][z]][1] === thisBlockType && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                          [blockDict[array[y][x-1][z]][1] === thisBlockType && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                          [blockDict[array[y][x][z+1]][1] === thisBlockType && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                          [blockDict[array[y][x][z-1]][1] === thisBlockType && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-          
+        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                          [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                          [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                          [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                          [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                          [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+
           // push();
           translate(inCoords(x), inCoords(y), inCoords(z));
-  
+
           for (let checkedSide of airChecklist) {
-  
-            if (checkedSide[0]) {       
+
+            if (array[y][x][z] !== 0 && checkedSide[0]) {       
               push();
-  
+
               rotateX(checkedSide[1]);
               rotateY(checkedSide[2]);
-  
+
               translate(0, 0, checkedSide[3]);
               texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
-  
+
               // fill(checkedSide[5]);
               plane(BLOCKWIDTH, BLOCKWIDTH);
               // box(BLOCKWIDTH, BLOCKWIDTH);
               // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
-  
+
               pop();
-            }
+              }
           }
-        }
+
+        // if (array[y][x][z] !== 0) {
+        //   // let thisBlockType = blockDict[array[y][x][z]][1];
+  
+        //   // //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+        //   // airChecklist = [[blockDict[array[y+1][x][z]][1] === thisBlockType && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+        //   //                 [blockDict[array[y-1][x][z]][1] === thisBlockType && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+        //   //                 [blockDict[array[y][x+1][z]][1] === thisBlockType && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+        //   //                 [blockDict[array[y][x-1][z]][1] === thisBlockType && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+        //   //                 [blockDict[array[y][x][z+1]][1] === thisBlockType && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+        //   //                 [blockDict[array[y][x][z-1]][1] === thisBlockType && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+          
+        //   // // push();
+        //   // translate(inCoords(x), inCoords(y), inCoords(z));
+  
+        //   // for (let checkedSide of airChecklist) {
+  
+        //   //   if (checkedSide[0]) {       
+        //   //     push();
+  
+        //   //     rotateX(checkedSide[1]);
+        //   //     rotateY(checkedSide[2]);
+  
+        //   //     translate(0, 0, checkedSide[3]);
+        //   //     texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+  
+        //   //     // fill(checkedSide[5]);
+        //   //     plane(BLOCKWIDTH, BLOCKWIDTH);
+        //   //     // box(BLOCKWIDTH, BLOCKWIDTH);
+        //   //     // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
+  
+        //   //     pop();
+
+        //   //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+          
+        // }
         translate(inCoords(-x), inCoords(-y), inCoords(-z));
       }
     }
@@ -325,7 +372,11 @@ function keyPressed() {
 } 
 
 function mousePressed() {
-  if (!isInMenu) {
+  if (isInMenu) {
+    for (let button of menuButtonArray[activeMenuLayer]) {
+      button.checkPressed();
+    }
+  } else {
     requestPointerLock();
   }
 }
@@ -358,58 +409,80 @@ function loadGame(slot) {
   camYaw = retrievedObject.get('camYaw');
 }
 
-function renderMenu() {
-  background(10, 10, 10, 50);
+function initiateMenu() {
+  testButton = new Button(10, 10, 100, 10, 'Test Button');
+  // var resetButton = new Button();
+  // var storeButton = new Button();
+
+  // var slot1Button = new Button();
+  // var slot2Button = new Button();
+  // var slot3Button = new Button();
+  // var slot4Button = new Button();
+  // var slot5Button = new Button();
+
+  // menuButtonArray.push([resetButton, storeButton])
+  // menuButtonArray.push([slot1Button, slot2Button, slot3Button, slot4Button, slot5Button])
+  menuButtonArray.push([testButton]);
 }
 
-class button {
-  constructor(x1, y1, x2, y2, text) {
-    this.x1 = x1;
-    this.y1 = y1;
-    this.x2 = x2;
-    this.y2 = y2;
-    this.text = text;
+function renderMenu() {
+  fill(10, 10, 10, 50);
+  rect(0, 0, width, height);
+  textSize(12);
+  textFont(regFont);
 
+  // for (let menuLayer of menuButtonArray) {
+  //   for (let button of menuLayer) {
+  //     button.checkHover();
+  //     button.display();
+  //   }
+  // }
+}
+
+class Button {
+  constructor(x, y, width, height, text) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.text = text;
+    
+    this.border = 5;
     this.edge = 5;
-     // [top/left edge, middle, bottom/right edge]
-    this.defaultColor = [171, 110, 87];
-    this.hoverColor = [[189, 198, 255], [126, 136, 191], [89, 99, 154]];
-    this.pressedColor = 
-    this.mode = "default"; // can be default, hovering, or pressed
+     
+    this.color = [171, 110, 87]; // [top/left edge, middle, bottom/right edge]
+    this.defaultBorderColor = 0;
+    this.hoverBorderColor = 255;
+    this.isHovering = false;
+    this.isPressed = false;
   }
   display() {
-    if (mode === 'default') {
-      // draw a rectangle border
-      fill(this.defaultColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.defaultColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.defaultColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
+    
+    if (this.isHovering) {
+      fill(this.hoverBorderColor);
+    } else {
+      fill(this.defaultBorderColor)
     }
-    if (mode === 'hovering') {
-      // draw a rectangle border
-      fill(this.hoverColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.hoverColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.hoverColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
-    }
-    if (mode === 'pressed') {
-      // draw a rectangle border
-      fill(this.pressedColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.pressedColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.pressedColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
-    }
-  }
-  checkHover() {
+    rect(this.x, this.y, this.width, this.height);
+    
+    fill(this.color[0])
+    triangle(this.x + this.border, this.y + this.border, this.x + this.width, this.y + this.height - this.border, this.x + this.border, this.y + this.height - this.border);
+    fill(this.color[1])
+    rect(this.x + this.edge + this.border, this.y + this.edge + this.border, this.x + this.width - this.edge - this.border, this.y + this.height - this.border - this.edge)
+    fill(this.color[2])
+    triangle(this.x + this.width, this.y + this.border, this.x + this.width, this.y + this.height - this.border, this.x + this.border, this.y + this.height - this.border);
+    // TEXT
+    text(this.text, this.x + this.width/2, this.y + this.height/2);
 
   }
+  checkHover() {
+    if (mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2) {
+      this.isHovering = true;
+    }
+  }
   checkPressed() { // put in mousePressed() {}
-     mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2;
+     if (this.isHovering) {
+      this.isPressed = true;
+     }
   }
 }
