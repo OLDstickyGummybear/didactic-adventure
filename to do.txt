@@ -1,6 +1,6 @@
 To increase performance:
-1. Render only the area in front of the camera (view frustum culling) (complete)
-2. Render only the side of a block facing the camera (occlusion culling)
+1. Render only the area in front of the camera (view frustum culling)
+2. Render only the side of a block facing the camera (occlusion culling) (complete)
 --- http://davidlively.com/programming/graphics/frustum-calculation-and-culling-hopefully-demystified/
 
 Add sky
@@ -12,3 +12,6 @@ Allow player to go out of bound
 
 Add esc menu that can reset world or save
 save menu will have 5 slots to save into
+
+add button for resuming game
+add button for showing coordinates
