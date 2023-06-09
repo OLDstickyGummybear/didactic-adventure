@@ -30,8 +30,6 @@ let isInAir = false;
 
 const GRAVITY = 2;
 
-let isInMenu = false;
-
 let renderDistance = 15;
 
 
@@ -46,11 +44,16 @@ function importBlock(blockName, map) {
   map.set(blockName, newArray);
 }
 
+let canvas3D;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(windowWidth, windowHeight);
+
+  canvas3D = createGraphics(windowWidth/(0.5), windowHeight/(0.5), WEBGL);
   noStroke();
   angleMode(DEGREES);
+  canvas3D.noStroke();
+  canvas3D.angleMode(DEGREES);
   noSmooth();
 
   textureMap = new Map();
@@ -61,7 +64,7 @@ function setup() {
     }
   }
 
-  camera = createCamera();
+  camera = canvas3D.createCamera();
   camera.perspective(fov, width/height, 0.01);
 
   seed = random(1000000000000000000000)
@@ -84,23 +87,22 @@ function setup() {
 }
 
 function draw() {
-  if (isInMenu) {
-    renderMenu();
-  } else {
-    background(120, 167, 255);
+  canvas3D.background(120, 167, 255);
   
 
-    directionalLight(150, 150, 150, 0.1, 0, 0);
-    directionalLight(100, 100, 100, 0, 0, 0.1);
-    directionalLight(200, 200, 200, 0, 0, -0.1);
-    directionalLight(200, 200, 200, -0.1, 0, 0);
-    directionalLight(255, 255, 255, 0, 0.1, 0);
-  
-    renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
-    moveCam(camera, worldArray);
-    // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
-    // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
-  }
+  canvas3D.directionalLight(150, 150, 150, 1, 0, 0);
+  canvas3D.directionalLight(100, 100, 100, 0, 0, 1);
+  canvas3D.directionalLight(200, 200, 200, 0, 0, -1);
+  canvas3D.directionalLight(200, 200, 200, -1, 0, 0);
+  canvas3D.directionalLight(255, 255, 255, 0, 1, 0);
+
+  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
+  moveCam(camera, worldArray);
+  // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
+  // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
+
+  image(canvas3D,0, 0, width, height);
+
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -172,41 +174,38 @@ function renderWorld(distance, array, camX, camZ, camY) {
   for (let y = 1; y < array.length - 1; y ++) {
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
-        if (array[y][x][z] !== 0) {
-          thisBlockType = blockDict[array[y][x][z]][1];
-  
-          //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-          airChecklist = [[blockDict[array[y+1][x][z]][1] === thisBlockType && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                          [blockDict[array[y-1][x][z]][1] === thisBlockType && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                          [blockDict[array[y][x+1][z]][1] === thisBlockType && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                          [blockDict[array[y][x-1][z]][1] === thisBlockType && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                          [blockDict[array[y][x][z+1]][1] === thisBlockType && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                          [blockDict[array[y][x][z-1]][1] === thisBlockType && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-          
-          // push();
-          translate(inCoords(x), inCoords(y), inCoords(z));
-  
-          for (let checkedSide of airChecklist) {
-  
-            if (checkedSide[0]) {       
-              push();
-  
-              rotateX(checkedSide[1]);
-              rotateY(checkedSide[2]);
-  
-              translate(0, 0, checkedSide[3]);
-              texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
-  
-              // fill(checkedSide[5]);
-              plane(BLOCKWIDTH, BLOCKWIDTH);
-              // box(BLOCKWIDTH, BLOCKWIDTH);
-              // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
-  
-              pop();
-            }
+
+        //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                        [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                        [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                        [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                        [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                        [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+        
+        // push();
+        canvas3D.translate(inCoords(x), inCoords(y), inCoords(z));
+
+        for (let checkedSide of airChecklist) {
+
+          if (array[y][x][z] !== 0 && checkedSide[0]) {       
+            canvas3D.push();
+
+            canvas3D.rotateX(checkedSide[1]);
+            canvas3D.rotateY(checkedSide[2]);
+
+            canvas3D.translate(0, 0, checkedSide[3]);
+            canvas3D.texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+
+            // fill(checkedSide[5]);
+            canvas3D.plane(BLOCKWIDTH, BLOCKWIDTH);
+            // box(BLOCKWIDTH, BLOCKWIDTH);
+            // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
+
+            canvas3D.pop();
           }
         }
-        translate(inCoords(-x), inCoords(-y), inCoords(-z));
+        canvas3D.translate(inCoords(-x), inCoords(-y), inCoords(-z));
       }
     }
   }
@@ -271,7 +270,7 @@ function moveCam(cam, array) {
     newCamX += sin(camYaw) * playerSpeed;
     newCamZ += cos(camYaw) * playerSpeed;
   }
-  if (keyIsDown(32) && !isInAir) { // SPACE; REMOVE ONCE GRAVITY WORKS
+  if (keyIsDown(32) && isInAir === false) { // SPACE; REMOVE ONCE GRAVITY WORKS
     // cam.setPosition(cam.eyeX, cam.eyeY - playerSpeed, cam.eyeZ);
     camYD = -15;
     isInAir = true;
@@ -319,97 +318,27 @@ function keyPressed() {
   if (keyIsDown(81) && renderDistance >= 4) { // Q; minimum render distance is 4 blocks
     renderDistance --;
   }
-  if (keyIsDown(67)) {
-    isInMenu = !isInMenu;
-  }
 } 
 
 function mousePressed() {
-  if (!isInMenu) {
-    requestPointerLock();
-  }
+  requestPointerLock();
 }
 
 function isInBlock(x, y, z) {
   return worldArray[inBlocksRound(y + inCoords(playerHeight))][inBlocksRound(x)][inBlocksRound(z)] !== 0
 }
 
-function saveGame(slot, name, date, array, cam) {
-  let saveObject = new Map();
-  saveObject.set('saveName', name);
-  saveObject.set('saveDate', date);
-  saveObject.set('playerX', cam.eyeX);
-  saveObject.set('playerY', cam.eyeY);
-  saveObject.set('playerZ', cam.eyeZ);
-  saveObject.set('camPitch', camPitch);
-  saveObject.set('camYaw', camYaw);
-  saveObject.set('worldArray', array);
+function saveGame(slot, name, date, array) {
+  saveFile = new Map();
+  saveFile.set('saveName', name);
+  saveFile.set('saveDate', date);
+  saveFile.set('playerData', [cam.eyeX, cam.eyeY, cam.eyeZ, camPitch, camYaw]);
+  saveFile.set('worldArray', array);
   
-  storeItem(`slot${slot}`, saveObject);
+  saveJSON(saveFile, `saves/slot${slot}.json`);
 }
 
-function loadGame(slot) {
-  let retrievedObject = getItem(`slot${slot}`);
-  worldArray = retrievedObject.get('worldArray');
-  cam.eyeX = retrievedObject.get('playerX');
-  cam.eyeY = retrievedObject.get('playerY');
-  cam.eyeZ = retrievedObject.get('playerZ');
-  camPitch = retrievedObject.get('camPitch');
-  camYaw = retrievedObject.get('camYaw');
-}
-
-function renderMenu() {
-  background(10, 10, 10, 50);
-}
-
-class button {
-  constructor(x1, y1, x2, y2, text) {
-    this.x1 = x1;
-    this.y1 = y1;
-    this.x2 = x2;
-    this.y2 = y2;
-    this.text = text;
-
-    this.edge = 5;
-     // [top/left edge, middle, bottom/right edge]
-    this.defaultColor = [171, 110, 87];
-    this.hoverColor = [[189, 198, 255], [126, 136, 191], [89, 99, 154]];
-    this.pressedColor = 
-    this.mode = "default"; // can be default, hovering, or pressed
-  }
-  display() {
-    if (mode === 'default') {
-      // draw a rectangle border
-      fill(this.defaultColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.defaultColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.defaultColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
-    }
-    if (mode === 'hovering') {
-      // draw a rectangle border
-      fill(this.hoverColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.hoverColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.hoverColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
-    }
-    if (mode === 'pressed') {
-      // draw a rectangle border
-      fill(this.pressedColor[0])
-      triangle(this.x1, this.y1, this.x2, this.y1, this.x1, this.y2);
-      fill(this.pressedColor[1])
-      rect(x1 + this.edge, y1 + this.edge, x2 - this.edge, y2 - this.edge)
-      fill(this.pressedColor[2])
-      triangle(this.x2, this.y1, this.x2, this.y2, this.x1, this.y2);
-    }
-  }
-  checkHover() {
-
-  }
-  checkPressed() { // put in mousePressed() {}
-     mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2;
-  }
+function loadGame(filePath) {
+  loadJSON(filePath);
+  worldArray = file.get
 }
