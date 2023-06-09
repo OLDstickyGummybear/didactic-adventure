@@ -166,35 +166,38 @@ function renderWorld(distance, array, camX, camZ, camY) {
   for (let y = 1; y < array.length - 1; y ++) {
     for (let x = Math.max(round(camXB) - distance, 1); x <= Math.min(round(camXB) + distance, array[0].length - 1); x ++) {
       for (let z = Math.max(round(camZB) - distance, 1); z <= Math.min(round(camZB) + distance, array[0][0].length - 1); z ++) {
-
-        //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-        airChecklist = [[array[y+1][x][z] === 0 && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-                        [array[y-1][x][z] === 0 && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-                        [array[y][x+1][z] === 0 && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-                        [array[y][x-1][z] === 0 && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-                        [array[y][x][z+1] === 0 && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-                        [array[y][x][z-1] === 0 && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-        
-        // push();
-        translate(inCoords(x), inCoords(y), inCoords(z));
-
-        for (let checkedSide of airChecklist) {
-
-          if (array[y][x][z] !== 0 && checkedSide[0]) {       
-            push();
-
-            rotateX(checkedSide[1]);
-            rotateY(checkedSide[2]);
-
-            translate(0, 0, checkedSide[3]);
-            texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
-
-            // fill(checkedSide[5]);
-            plane(BLOCKWIDTH, BLOCKWIDTH);
-            // box(BLOCKWIDTH, BLOCKWIDTH);
-            // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
-
-            pop();
+        if (array[y][x][z] !== 0) {
+          thisBlockType = blockDict[array[y][x][z]][1];
+  
+          //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
+          airChecklist = [[blockDict[array[y+1][x][z]][1] === thisBlockType && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
+                          [blockDict[array[y-1][x][z]][1] === thisBlockType && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
+                          [blockDict[array[y][x+1][z]][1] === thisBlockType && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
+                          [blockDict[array[y][x-1][z]][1] === thisBlockType && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
+                          [blockDict[array[y][x][z+1]][1] === thisBlockType && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
+                          [blockDict[array[y][x][z-1]][1] === thisBlockType && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
+          
+          // push();
+          translate(inCoords(x), inCoords(y), inCoords(z));
+  
+          for (let checkedSide of airChecklist) {
+  
+            if (checkedSide[0]) {       
+              push();
+  
+              rotateX(checkedSide[1]);
+              rotateY(checkedSide[2]);
+  
+              translate(0, 0, checkedSide[3]);
+              texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
+  
+              // fill(checkedSide[5]);
+              plane(BLOCKWIDTH, BLOCKWIDTH);
+              // box(BLOCKWIDTH, BLOCKWIDTH);
+              // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
+  
+              pop();
+            }
           }
         }
         translate(inCoords(-x), inCoords(-y), inCoords(-z));
