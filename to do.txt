@@ -15,3 +15,6 @@ save menu will have 5 slots to save into
 
 add button for resuming game
 add button for showing coordinates
+
+set fall speed limit
+regulate playerspeed based on framerate

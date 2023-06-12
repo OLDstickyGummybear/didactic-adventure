@@ -23,8 +23,7 @@ let camYaw = 0;
 let camPitch = 0;
 let fov = 100;
 
-let walkSpeed = 6;
-let sprintSpeed = 11;
+let walkSpeed, sprintSpeed;
 let playerHeight = 1.5;
 let camYD = 0;
 let isInAir = false;
@@ -40,6 +39,8 @@ let renderDistance = 15;
 let activeMenuLayer = 0;
 let testButton, resetButton, storeButton, resumeButton;
 let slot1Button, slot2Button, slot3Button, slot4Button, slot5Button;
+
+let c, m;
 
 
 let blockDict = [['air', 'empty'], ['grass', 'solid'], ['dirt', 'solid'], ['stone', 'solid'], ['log', 'solid'], ['leaves', 'transparent']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
@@ -89,6 +90,9 @@ function setup() {
   // // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
   spawnY = findGround(spawnX, spawnZ, worldArray) - 3;
 
+  walkSpeed = 4.317 * 50 / (frameRate() === 0 ? 30 : frameRate());
+  sprintSpeed = 10 * 50 / (frameRate() === 0 ? 30 : frameRate());
+
   // // Moves camera to spawnpoint
   camera.eyeX = inCoords(spawnX);
   camera.eyeY = inCoords(spawnY);
@@ -116,7 +120,7 @@ function draw() {
     // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
     // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
   }
-
+  
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -426,10 +430,10 @@ function initiateMenu() {
 }
 
 function renderMenu() {
-  fill(10, 10, 10, 50);
-  rect(0, 0, width, height);
-  textSize(12);
-  textFont(regFont);
+  menuCanvas.fill(10, 10, 10, 50);
+  menuCanvas.rect(0, 0, width, height);
+  menuCanvas.textSize(12);
+  // menuCanvas.textFont(regFont);
 
   // for (let menuLayer of menuButtonArray) {
   //   for (let button of menuLayer) {
