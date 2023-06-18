@@ -3,7 +3,6 @@
 let worldArray;
 let menuButtonArray = []; // every array inside the menu array is a separate level, in which buttons are stored
 
-let seed;
 let airChecklist;
 
 const BLOCKWIDTH = 50;
@@ -11,8 +10,8 @@ const BLOCKWIDTH = 50;
 let textureMap;
 
 // Declares default world generation dimensions
-const GENXWIDTH = 1000;
-const GENZWIDTH = 1000;
+const GENXWIDTH = 500;
+const GENZWIDTH = 500;
 const GENYHEIGHT = 30;
 
 const ZOOM = 20;
@@ -40,7 +39,55 @@ let activeMenuLayer = 0;
 let testButton, resetButton, storeButton, resumeButton;
 let slot1Button, slot2Button, slot3Button, slot4Button, slot5Button;
 
-let c, m;
+let tree1 = [[
+  [0, 0, 0, 0, 0],
+  [0, 0, 6, 0, 0],
+  [0, 6, 6, 6, 0],
+  [0, 0, 6, 0, 0],
+  [0, 0, 0, 0, 0]
+],
+[
+  [0, 0, 0, 0, 0],
+  [0, 0, 6, 6, 0],
+  [0, 6, 5, 6, 0],
+  [0, 0, 6, 0, 0],
+  [0, 0, 0, 0, 0]
+],
+[
+  [0, 6, 6, 6, 6],
+  [6, 6, 6, 6, 6],
+  [6, 6, 5, 6, 6],
+  [6, 6, 6, 6, 6],
+  [0, 6, 6, 6, 0]
+],
+[
+  [0, 6, 6, 6, 0],
+  [6, 6, 6, 6, 6],
+  [6, 6, 5, 6, 6],
+  [6, 6, 6, 6, 6],
+  [6, 6, 6, 6, 0]
+],
+[
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0]
+],
+[
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0]
+],
+[
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0]
+]];
 
 
 let blockDict = [['air', 'empty'], ['grass', 'solid'], ['dirt', 'solid'], ['stone', 'solid'], ['log', 'solid'], ['leaves', 'transparent']]; // List of existing blocks and properties [name, model]; used in preload() and to translate index from worldArray
@@ -54,18 +101,12 @@ function importBlock(blockName, map) {
   map.set(blockName, newArray);
 }
 
-
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
   angleMode(DEGREES);
   noSmooth();
   textAlign(CENTER);
-
-  menuCanvas = createCanvas(windowWidth, windowHeight);
-  
-  boldFont = loadFont('fonts/bold.otf');
-  regFont = loadFont('fonts/regular.otf');
 
   textureMap = new Map();
 
@@ -75,52 +116,51 @@ function setup() {
     }
   }
 
+  // let tree1String = loadStrings('trees/tree1.txt');
+  // tree1 = JSON.parse(tree1String);
+
   camera = createCamera();
   camera.perspective(fov, width/height, 0.01);
 
-  seed = random(1000000000000000000000)
+  walkSpeed = 4.317 // * 50 / (frameRate() === 0 ? 30 : frameRate());
+  sprintSpeed = 10  // * 50 / (frameRate() === 0 ? 30 : frameRate());
 
   worldArray = createEmpty3DArray(GENXWIDTH, GENYHEIGHT, GENZWIDTH);
-  generateWorld(worldArray, seed, ZOOM);
+
+  initiateWorld(camera, worldArray);  
+}
+
+function initiateWorld(cam, array) {
+
+  generateWorld(array, ZOOM);
 
   // // Calculates spawnpoint to be in the centre of the array
   spawnX = round(GENXWIDTH/2);
   spawnZ = round(GENZWIDTH/2);
 
   // // Calculates safe Y-coordinate of spawnpoint using findSpawnY()
-  spawnY = findGround(spawnX, spawnZ, worldArray) - 3;
-
-  walkSpeed = 4.317 * 50 / (frameRate() === 0 ? 30 : frameRate());
-  sprintSpeed = 10 * 50 / (frameRate() === 0 ? 30 : frameRate());
+  spawnY = findGround(spawnX, spawnZ, array) - 3;
 
   // // Moves camera to spawnpoint
-  camera.eyeX = inCoords(spawnX);
-  camera.eyeY = inCoords(spawnY);
-  camera.eyeZ = inCoords(spawnZ);
-  camera.lookAt(camera.eyeX, camera.eye, camera.eyeZ);
-
-  initiateMenu();
+  cam.eyeX = inCoords(spawnX);
+  cam.eyeY = inCoords(spawnY);
+  cam.eyeZ = inCoords(spawnZ);
+  cam.lookAt(cam.eyeX, cam.eyeY, cam.eyeZ);
 }
 
 function draw() {
-  if (isInMenu) {
-    renderMenu();
-  } else {
-    background(120, 167, 255);
-  
+  background(120, 167, 255);
 
-    directionalLight(150, 150, 150, 0.1, 0, 0);
-    directionalLight(100, 100, 100, 0, 0, 0.1);
-    directionalLight(200, 200, 200, 0, 0, -0.1);
-    directionalLight(200, 200, 200, -0.1, 0, 0);
-    directionalLight(255, 255, 255, 0, 0.1, 0);
-  
-    renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
-    moveCam(camera, worldArray);
-    // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
-    // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`)
-  }
-  
+  directionalLight(150, 150, 150, 0.1, 0, 0);
+  directionalLight(100, 100, 100, 0, 0, 0.1);
+  directionalLight(200, 200, 200, 0, 0, -0.1);
+  directionalLight(200, 200, 200, -0.1, 0, 0);
+  directionalLight(255, 255, 255, 0, 0.1, 0);
+
+  renderWorld(renderDistance, worldArray, camera.eyeX, camera.eyeZ, camera.eyeY);
+  moveCam(camera, worldArray);
+  // console.log(`eyeX: ${inBlocksRound(camera.eyeX)}, eyeY: ${inBlocksRound(camera.eyeY)}, eyeZ: ${inBlocksRound(camera.eyeZ)}`)
+  // console.log(`centerX: ${rotationX}, centerY: ${rotationY}, centerZ: ${rotationZ}`) 
 }
 
 // Creates empty cubic array given a length, height, and width
@@ -149,7 +189,7 @@ function findGround(x, z, array) {
 }
 
 // Procedurally generates terrain
-function generateWorld(array, seed, zoom) {
+function generateWorld(array, zoom) {
   console.log('Generating Terrain');
   // Picks random start point for Perlin noise
   // let xOffset = random(seed);
@@ -157,8 +197,6 @@ function generateWorld(array, seed, zoom) {
 
   let xOffset = 0;
   let zOffset = 0;
-
-
 
   for (let x = 0; x < array[0].length; x++) { // For each X-coordinate
     for (let z = 0; z < array[0][0].length; z++) { // For each Z-coordinate
@@ -177,6 +215,12 @@ function generateWorld(array, seed, zoom) {
         else { // For everything below
           array[yIter][x][z] = 3; // Sets block as stone
         }
+      }
+
+      let treeChance = random(1000);
+      if (treeChance > 500) {
+        console.log("generating tree");
+        buildTree(x, yGen, z, tree1);
       }
     }
   }
@@ -221,42 +265,6 @@ function renderWorld(distance, array, camX, camZ, camY) {
               pop();
               }
           }
-
-        // if (array[y][x][z] !== 0) {
-        //   // let thisBlockType = blockDict[array[y][x][z]][1];
-  
-        //   // //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-        //   // airChecklist = [[blockDict[array[y+1][x][z]][1] === thisBlockType && y < camYB,     -90,         0,  BLOCKWIDTH/2, 2, 'red'], // down
-        //   //                 [blockDict[array[y-1][x][z]][1] === thisBlockType && y > camYB,      90,         0,  BLOCKWIDTH/2, 0 , 'orange'], // up
-        //   //                 [blockDict[array[y][x+1][z]][1] === thisBlockType && x < camXB,       0,       -90, -BLOCKWIDTH/2, 1, 'yellow'], // west
-        //   //                 [blockDict[array[y][x-1][z]][1] === thisBlockType && x > camXB,       0,        90, -BLOCKWIDTH/2, 1, 'green'], // east
-        //   //                 [blockDict[array[y][x][z+1]][1] === thisBlockType && z < camZB,       0,         0,  BLOCKWIDTH/2, 1, 'blue'], // south
-        //   //                 [blockDict[array[y][x][z-1]][1] === thisBlockType && z > camZB,       0,       180,    BLOCKWIDTH/2, 1, 'purple']]; // north
-          
-        //   // // push();
-        //   // translate(inCoords(x), inCoords(y), inCoords(z));
-  
-        //   // for (let checkedSide of airChecklist) {
-  
-        //   //   if (checkedSide[0]) {       
-        //   //     push();
-  
-        //   //     rotateX(checkedSide[1]);
-        //   //     rotateY(checkedSide[2]);
-  
-        //   //     translate(0, 0, checkedSide[3]);
-        //   //     texture(textureMap.get(blockDict[array[y][x][z]][0])[checkedSide[4]]);
-  
-        //   //     // fill(checkedSide[5]);
-        //   //     plane(BLOCKWIDTH, BLOCKWIDTH);
-        //   //     // box(BLOCKWIDTH, BLOCKWIDTH);
-        //   //     // console.log(`plane drawn at ${checkedSide[4] + x}, ${checkedSide[5] + y}, ${checkedSide[6] + z} `)
-  
-        //   //     pop();
-
-        //   //             [                           condition, rotateX,   rotateY,   translate Z, texture side (0 = top, 1 = side, 2 = bottom)]  
-          
-        // }
         translate(inCoords(-x), inCoords(-y), inCoords(-z));
       }
     }
@@ -371,122 +379,59 @@ function keyPressed() {
     renderDistance --;
   }
   if (keyIsDown(67)) {
-    isInMenu = !isInMenu;
+    saveGame(worldArray, camera);
+    console.log("Game saved");
+  }
+  if (keyIsDown(86)) {
+    loadGame(worldArray, camera);
+    
   }
 } 
 
 function mousePressed() {
-  if (isInMenu) {
-    for (let button of menuButtonArray[activeMenuLayer]) {
-      button.checkPressed();
-    }
-  } else {
-    requestPointerLock();
-  }
+  requestPointerLock();
 }
 
 function isInBlock(x, y, z) {
   return worldArray[inBlocksRound(y + inCoords(playerHeight))][inBlocksRound(x)][inBlocksRound(z)] !== 0
 }
 
-function saveGame(slot, name, date, array, cam) {
-  let saveObject = new Map();
-  saveObject.set('saveName', name);
-  saveObject.set('saveDate', date);
-  saveObject.set('playerX', cam.eyeX);
-  saveObject.set('playerY', cam.eyeY);
-  saveObject.set('playerZ', cam.eyeZ);
-  saveObject.set('camPitch', camPitch);
-  saveObject.set('camYaw', camYaw);
-  saveObject.set('worldArray', array);
+function saveGame() {
+  storeItem('playerX', camera.eyeX);
+  storeItem('playerY', camera.eyeY);
+  storeItem('playerZ', camera.eyeZ);
+  storeItem('camPitch', camPitch);
+  storeItem('camYaw', camYaw);
+  storeItem('worldArray', worldArray);
+}
+
+function loadGame() {
+  worldArray = getItem('worldArray');
+  camera.eyeX = getItem('playerX');
+  camera.eyeY = getItem('playerY');
+  camera.eyeZ = getItem('playerZ');
+  camPitch = getItem('camPitch');
+  camYaw = getItem('camYaw');
+}
+
+function buildTree(rootX, rootY, rootZ, tree) {
+  let treeHeight = tree.length;
+  let treeWidthX = tree[0].length;
+  let treeWidthZ = tree[0][0].length;
   
-  storeItem(`slot${slot}`, saveObject);
-}
+  for (let y = treeHeight; y < 0; y--) {
+    for (let x = 0; x <= rootX + Math.floor(treeWidthX); x++) {
+      for (let z = 0; z <= rootZ + Math.floor(treeWidthZ); z++) {
+        let worldX = rootX - Math.floor(treeWidthX) + x;
+        let worldY = rootY + y;
+        let worldZ = rootZ - Math.floor(treeWidthZ) + z;
 
-function loadGame(slot) {
-  let retrievedObject = getItem(`slot${slot}`);
-  worldArray = retrievedObject.get('worldArray');
-  cam.eyeX = retrievedObject.get('playerX');
-  cam.eyeY = retrievedObject.get('playerY');
-  cam.eyeZ = retrievedObject.get('playerZ');
-  camPitch = retrievedObject.get('camPitch');
-  camYaw = retrievedObject.get('camYaw');
-}
-
-function initiateMenu() {
-  testButton = new Button(10, 10, 100, 10, 'Test Button');
-  // var resetButton = new Button();
-  // var storeButton = new Button();
-
-  // var slot1Button = new Button();
-  // var slot2Button = new Button();
-  // var slot3Button = new Button();
-  // var slot4Button = new Button();
-  // var slot5Button = new Button();
-
-  // menuButtonArray.push([resetButton, storeButton])
-  // menuButtonArray.push([slot1Button, slot2Button, slot3Button, slot4Button, slot5Button])
-  menuButtonArray.push([testButton]);
-}
-
-function renderMenu() {
-  menuCanvas.fill(10, 10, 10, 50);
-  menuCanvas.rect(0, 0, width, height);
-  menuCanvas.textSize(12);
-  // menuCanvas.textFont(regFont);
-
-  // for (let menuLayer of menuButtonArray) {
-  //   for (let button of menuLayer) {
-  //     button.checkHover();
-  //     button.display();
-  //   }
-  // }
-}
-
-class Button {
-  constructor(x, y, width, height, text) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.text = text;
-    
-    this.border = 5;
-    this.edge = 5;
-     
-    this.color = [171, 110, 87]; // [top/left edge, middle, bottom/right edge]
-    this.defaultBorderColor = 0;
-    this.hoverBorderColor = 255;
-    this.isHovering = false;
-    this.isPressed = false;
-  }
-  display() {
-    
-    if (this.isHovering) {
-      fill(this.hoverBorderColor);
-    } else {
-      fill(this.defaultBorderColor)
-    }
-    rect(this.x, this.y, this.width, this.height);
-    
-    fill(this.color[0])
-    triangle(this.x + this.border, this.y + this.border, this.x + this.width, this.y + this.height - this.border, this.x + this.border, this.y + this.height - this.border);
-    fill(this.color[1])
-    rect(this.x + this.edge + this.border, this.y + this.edge + this.border, this.x + this.width - this.edge - this.border, this.y + this.height - this.border - this.edge)
-    fill(this.color[2])
-    triangle(this.x + this.width, this.y + this.border, this.x + this.width, this.y + this.height - this.border, this.x + this.border, this.y + this.height - this.border);
-    // TEXT
-    text(this.text, this.x + this.width/2, this.y + this.height/2);
-
-  }
-  checkHover() {
-    if (mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2) {
-      this.isHovering = true;
+        if (worldArray[worldY][worldX][worldZ] !== 0 && tree[y][x][z] !== 0) {
+          worldArray[worldY][worldX][worldZ] = tree[y][x][z];
+        }
+      }
     }
   }
-  checkPressed() { // put in mousePressed() {}
-     if (this.isHovering) {
-      this.isPressed = true;
-     }
-  }
+
+
 }
