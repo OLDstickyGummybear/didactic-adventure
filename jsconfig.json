@@ -3,5 +3,5 @@
     "*.js",
     "libraries/*.js",
     "c:\\Users\\kevin\\.vscode\\extensions\\wmcicompsci.cs30-p5-1.5.0\\p5types\\global.d.ts"
-  ]
+, "experimental/johnson's sketchy sketch.js"  ]
 }
