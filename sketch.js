@@ -1,3 +1,11 @@
+// Coding Capstone Project
+// Kevin Liu
+// Mr. Schellenberg
+// Computer Science 30
+// June 19th, 2023
+
+// This project procedurally generates a voxel-based terrain using perlin noise, stored within a 3D array. The goal is to accurately recreate the look and feel of Minecraft, whether it be the terrain, textures, controls, or movements. Players can control their movements just like in Minecraft, using the mouse and WASD. In addition, players can save and load games, re-generate worlds, and control their render distance.
+
 // north == -z; south == +z; west == -x; east = +x; up == -y; down == +y
 
 let worldArray;
@@ -126,7 +134,10 @@ function setup() {
   worldArray = createEmpty3DArray(GENXWIDTH, GENYHEIGHT, GENZWIDTH);
 
   // Randomly generates world, then finds safe spawnpoint for player.
-  initiateWorld(camera, worldArray);  
+  initiateWorld(camera, worldArray);
+
+  // Provides instructions
+  alert("Controls:\nWASD & Space: Movement\nR: Sprint\nQ & E: Changes render distance\nZ: Re-generate world\nC: Save world\nV: Load world\nClick anywhere on the screen to hide mouse");
 }
 
 // Randomly generates world, then finds safe spawnpoint for player.
@@ -364,7 +375,7 @@ function moveCam(cam, array) {
     } 
   }
 
-  // If new X or Z coordinates ARE inside a block (due to collision), set the newCam value to the original camera coordinate
+  // If new X or Z coordinates ARE inside a block (due to collision), set the newCam value to the original camera coordinate. This preserves the movement of one axis even if the other axis is obstructed.
   if (array[inBlocksRound(cam.eyeY + inCoords(playerHeight))][inBlocksRound(newCamX)][inBlocksRound(cam.eyeZ)] !== 0) {
     newCamX = cam.eyeX;
   }
